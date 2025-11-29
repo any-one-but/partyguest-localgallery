@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Local Gallery</title>
-  <!-- Local Gallery v1.10.0 -->
+  <!-- Local Gallery v1.15.0 -->
   <style>
     :root {
       --color0-primary: hsl(0, 0%, 95%);
@@ -100,16 +100,6 @@
 
     #startBtn:active {
       transform: translateY(1px);
-    }
-
-    #dropHint {
-      margin-top: 4px;
-      padding: 8px 10px;
-      border-radius: 3px;
-      border: 1px dashed var(--color0-secondary);
-      background: rgba(0,0,0,0.3);
-      font-size: 12px;
-      text-align: center;
     }
 
     #fileCount {
@@ -244,11 +234,6 @@
       text-align: center;
     }
 
-    body.drag-over #dropHint {
-      border-color: var(--anchor-internal-color2-primary);
-      color: var(--color0-primary);
-    }
-
     /* Folder display in viewer */
     .folder-item {
       display: flex;
@@ -328,7 +313,6 @@
       <h1>Local Gallery</h1>
       <input id="fileInput" type="file" multiple webkitdirectory accept="image/*,video/*">
       <button id="startBtn" type="button">Open gallery</button>
-      <div id="dropHint">or drag image/video files or folders into this window</div>
       <div id="fileCount"></div>
       <div id="keysHint">
           <p>Gallery keybinds (right hand): W = up directory; S = down directory; ← / A = previous; → / D = next; 1 = -10 files; 3 = +10 files; Q = -10s; E = +10s; Space = play/pause; ` = close gallery.</p>
@@ -379,7 +363,6 @@
     let loopWithinDir = false;
     let uiHidden = false;
     let uiHideTimer = null;
-    let fullscreenCheckTimeout = null;
 
     // Directory tree
     let rootNode = null;
@@ -560,44 +543,13 @@
 
       galleryIndex = 0;
       fileCountEl.textContent = `Loaded ${galleryItems.length} items.`;
-      startBtn.style.display = 'none';
-      showOverlay();
+      startBtn.style.display = 'inline-block';
     }
 
     fileInput.addEventListener('change', (e) => {
       const files = e.target.files;
       if (!files || !files.length) return;
       addFilesFromFileList(files);
-    });
-
-    // Drag & drop support
-    function clearDragOverState() {
-      document.body.classList.remove('drag-over');
-    }
-
-    window.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      document.body.classList.add('drag-over');
-    });
-
-    window.addEventListener('dragleave', (e) => {
-      if (e.target === document.body || !e.relatedTarget) {
-        clearDragOverState();
-      }
-    });
-
-    window.addEventListener('dragend', () => {
-      clearDragOverState();
-    });
-
-    window.addEventListener('drop', (e) => {
-      e.preventDefault();
-      clearDragOverState();
-      const dt = e.dataTransfer;
-      if (!dt) return;
-      if (dt.files && dt.files.length) {
-        addFilesFromFileList(dt.files);
-      }
     });
 
     function enterFullscreenIfPossible() {
@@ -620,22 +572,6 @@
       if (!document.fullscreenElement) {
         hideOverlay();
       }
-    }
-
-    function scheduleFullscreenCheck(attemptsLeft) {
-      if (fullscreenCheckTimeout) {
-        clearTimeout(fullscreenCheckTimeout);
-        fullscreenCheckTimeout = null;
-      }
-      fullscreenCheckTimeout = setTimeout(() => {
-        if (!GALLERY_MODE) return;
-        if (!document.fullscreenElement) {
-          enterFullscreenIfPossible();
-        }
-        if (attemptsLeft > 1 && GALLERY_MODE && !document.fullscreenElement) {
-          scheduleFullscreenCheck(attemptsLeft - 1);
-        }
-      }, 10000);
     }
 
     function showUI() {
@@ -667,7 +603,6 @@
       if (controls) controls.style.display = 'none';
       renderGalleryItem(galleryIndex);
       enterFullscreenIfPossible();
-      scheduleFullscreenCheck(2);
       resetUIHideTimer();
     }
 
@@ -679,10 +614,6 @@
       if (uiHideTimer) {
         clearTimeout(uiHideTimer);
         uiHideTimer = null;
-      }
-      if (fullscreenCheckTimeout) {
-        clearTimeout(fullscreenCheckTimeout);
-        fullscreenCheckTimeout = null;
       }
       showUI();
       stopSlideshow();
@@ -1044,9 +975,19 @@
     }
 
     function handleGalleryKeydown(e) {
-      if (!GALLERY_MODE) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const key = e.key;
+
+      if (!GALLERY_MODE) {
+        if (key === 'g' || key === 'G') {
+          if (galleryItems.length) {
+            e.preventDefault();
+            showOverlay();
+          }
+        }
+        return;
+      }
+
       const item = galleryItems[galleryIndex] || null;
 
       // Always-available up-directory
