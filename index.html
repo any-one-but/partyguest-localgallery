@@ -1,9 +1,8 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>PartyGuest Local Gallery</title>
-  <!-- PartyGuest Local Gallery v1.2.0 -->
+  <!-- PartyGuest Local Gallery v1.10.0 -->
   <style>
     :root {
       --color0-primary: hsl(0, 0%, 95%);
@@ -560,7 +559,8 @@
 
       galleryIndex = 0;
       fileCountEl.textContent = `Loaded ${galleryItems.length} items.`;
-      startBtn.style.display = 'inline-block';
+      startBtn.style.display = 'none';
+      showOverlay();
     }
 
     fileInput.addEventListener('change', (e) => {
