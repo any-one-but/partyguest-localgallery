@@ -1,10 +1,10 @@
 // noinspection SpellCheckingInspection,JSUnresolvedVariable,JSUnresolvedFunction,TypeScriptUMDGlobal,JSUnusedGlobalSymbols
 // ==UserScript==
-// @name XenForoPostDownloaderCustom
+// @name PostDownloaderCustom
 // @namespace https://github.com/SkyCloudDev
-// @author SkyCloudDev
+// @author anyone-but
 // @description Downloads images and videos from posts
-// @version 3.10 (Personal Build)
+// @version 01.0.00
 // @updateURL
 // @downloadURL
 // @icon https://simp4.host.church/simpcityIcon192.png
