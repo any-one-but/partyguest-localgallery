@@ -232,13 +232,6 @@
       flex-wrap: wrap;
     }
 
-    #directoriesHeaderLeft {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
     #directoriesHeaderTop .title {
       font-size: 12px;
       font-weight: 800;
@@ -246,15 +239,16 @@
       letter-spacing: .02em;
     }
 
-    #favoritesBtn.active {
-      background: var(--color0-primary);
-      color: var(--color1-primary);
-      border-color: var(--color0-tertirary);
-    }
-
     #directoriesBtns {
       display: flex;
       gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    #directoriesFavoritesRow {
+      display: none;
+      gap: 6px;
       flex-wrap: wrap;
       align-items: center;
     }
@@ -530,45 +524,6 @@
     .fileCard.enter {
       opacity: 0;
       transform: translateY(6px);
-    }
-
-    .previewExpandedSection {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .previewExpandedContent {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-
-    .previewFolderBar {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      padding: 4px 10px;
-      border: 1px solid var(--color1-tertiary);
-      border-radius: 4px;
-      background: var(--color1-primary);
-      font-size: 11px;
-    }
-
-    .previewFolderBar .name {
-      font-weight: 800;
-      letter-spacing: .02em;
-      max-width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .previewFolderBar.selected {
-      background: var(--color0-secondary);
-      color: var(--color1-primary);
-      border-color: var(--color0-tertirary);
     }
 
     .thumb {
@@ -1143,87 +1098,6 @@
       max-width: 320px;
     }
 
-    .remotePanel {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 8px;
-    }
-
-    .remoteRow {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .remoteRow input[type="text"] {
-      flex: 1 1 220px;
-      background: var(--color1-primary);
-      color: var(--color0-primary);
-      border: 1px solid var(--color1-tertiary);
-      border-radius: 2px;
-      padding: 6px 8px;
-      font-size: 12px;
-      outline: none;
-    }
-
-    .remoteHint {
-      font-size: 11px;
-      color: var(--color0-secondary);
-      line-height: 1.35;
-    }
-
-    .remoteProfilesList {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .remoteProfileCard {
-      border: 1px solid var(--color1-tertiary);
-      border-radius: 4px;
-      padding: 8px 10px;
-      background: var(--color1-primary);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .remoteProfileHeader {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .remoteProfileMeta {
-      font-size: 11px;
-      color: var(--color0-secondary);
-    }
-
-    .remoteProfileTags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .remoteTag {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 6px;
-      border-radius: 2px;
-      font-size: 11px;
-      border: 1px solid var(--color1-tertiary);
-      background: var(--color1-secondary);
-    }
-
-    .remoteStatusLine {
-      font-size: 11px;
-      color: var(--color0-secondary);
-    }
-
     #optionsFooter {
       padding: 10px 10px 10px;
       border-top: 1px solid var(--color1-tertiary);
@@ -1280,7 +1154,6 @@
       <div id="titleBtns">
         <button id="helpBtn" type="button" class="miniBtn">?</button>
         <button id="optionsBtn" type="button" class="miniBtn">⚙</button>
-        <button id="openRemoteBtn" type="button" class="miniBtn">Open Remote</button>
         <button id="openWritableBtn" type="button" class="miniBtn">Load Folder</button>
       </div>
     </div>
@@ -1293,14 +1166,14 @@
         <div id="directoriesPane">
           <div id="directoriesHeader">
             <div id="directoriesHeaderTop">
-              <div id="directoriesHeaderLeft">
-                <button id="favoritesBtn" type="button" class="miniBtn">★ Favorites (0)</button>
-                <div class="title">Directories</div>
-              </div>
+              <div class="title">Directories</div>
               <div id="directoriesBtns">
+                <button id="sortModeBtn" type="button" class="miniBtn">Sort: Name</button>
+                <button id="toggleScoresBtn" type="button" class="miniBtn">Scores: On</button>
                 <button id="toggleTagsBtn" type="button" class="miniBtn">Tags</button>
               </div>
             </div>
+            <div id="directoriesFavoritesRow"></div>
             <div id="directoriesSearchRow">
               <input id="directoriesSearchInput" class="tagEditInput" type="text" placeholder="Search this folder..." />
               <button id="directoriesSearchClearBtn" type="button" class="miniBtn">X</button>
@@ -1470,36 +1343,6 @@
     const indexPrefixRE = /^(\d+)\s-\s/;
 
     const FAVORITE_TAG = "__favorite__";
-    const SITE_DATA_FILE_NAME = "site-data.log.json";
-    const SITE_DATA_LOCAL_KEY = "LocalGallerySiteData::v1";
-    const SITE_DATA_SCHEMA_VERSION = 1;
-    const REMOTE_PAGE_SIZE = 50;
-    const REMOTE_FETCH_DELAY_MS = 220;
-
-    const REMOTE_DEFAULT_SETTINGS = {
-      defaultSortMode: "site-order",
-      autoRefreshOnOpen: true
-    };
-
-    let SITE_DATA = {
-      schemaVersion: SITE_DATA_SCHEMA_VERSION,
-      updatedAt: null,
-      profiles: {},
-      recentProfiles: [],
-      settings: { ...REMOTE_DEFAULT_SETTINGS }
-    };
-
-    const REMOTE = {
-      active: false,
-      profileKey: "",
-      profile: null,
-      loading: false,
-      loadedPosts: 0,
-      loadedFiles: 0,
-      controller: null,
-      status: "",
-      loadStartedAt: 0
-    };
 
     function isImageName(name) { return imgRE.test((name || "").toLowerCase()); }
     function isVideoName(name) { return vidRE.test((name || "").toLowerCase()); }
@@ -1564,10 +1407,7 @@
         childrenDirs: [],
         childrenFiles: [],
         lastIndex: 0,
-        path: "",
-        preserveOrder: false,
-        isRemote: false,
-        remoteMeta: null
+        path: ""
       };
     }
 
@@ -1581,16 +1421,14 @@
         defaultFilterMode: "all",
         defaultRandomMode: false,
         defaultFolderBehavior: "slide",
-        showFolderScores: false,
+        defaultShowScores: false,
         videoSkipStep: "10",
         preloadNextMode: "off",
         videoEndBehavior: "loop",
         slideshowDefault: "cycle",
         hideIndicesInNames: true,
         hideUnderscoresInNames: false,
-        forceTitleCaps: false,
-        tagFilterMode: "any",
-        previewMode: "standard"
+        forceTitleCaps: false
       };
     }
 
@@ -1606,16 +1444,14 @@
         defaultFilterMode: (src.defaultFilterMode === "all" || src.defaultFilterMode === "images" || src.defaultFilterMode === "videos" || src.defaultFilterMode === "gifs") ? src.defaultFilterMode : d.defaultFilterMode,
         defaultRandomMode: (typeof src.defaultRandomMode === "boolean") ? src.defaultRandomMode : d.defaultRandomMode,
         defaultFolderBehavior: (src.defaultFolderBehavior === "stop" || src.defaultFolderBehavior === "loop" || src.defaultFolderBehavior === "slide") ? src.defaultFolderBehavior : d.defaultFolderBehavior,
-        showFolderScores: (typeof src.showFolderScores === "boolean") ? src.showFolderScores : ((typeof src.defaultShowScores === "boolean") ? src.defaultShowScores : d.showFolderScores),
+        defaultShowScores: (typeof src.defaultShowScores === "boolean") ? src.defaultShowScores : d.defaultShowScores,
         videoSkipStep: (src.videoSkipStep === "3" || src.videoSkipStep === "5" || src.videoSkipStep === "10" || src.videoSkipStep === "30") ? src.videoSkipStep : d.videoSkipStep,
         preloadNextMode: (src.preloadNextMode === "off" || src.preloadNextMode === "on" || src.preloadNextMode === "ultra") ? src.preloadNextMode : d.preloadNextMode,
         videoEndBehavior: (src.videoEndBehavior === "loop" || src.videoEndBehavior === "next" || src.videoEndBehavior === "stop") ? src.videoEndBehavior : d.videoEndBehavior,
         slideshowDefault: (src.slideshowDefault === "cycle" || src.slideshowDefault === "1" || src.slideshowDefault === "3" || src.slideshowDefault === "5" || src.slideshowDefault === "10") ? src.slideshowDefault : d.slideshowDefault,
         hideIndicesInNames: (typeof src.hideIndicesInNames === "boolean") ? src.hideIndicesInNames : d.hideIndicesInNames,
         hideUnderscoresInNames: (typeof src.hideUnderscoresInNames === "boolean") ? src.hideUnderscoresInNames : d.hideUnderscoresInNames,
-        forceTitleCaps: (typeof src.forceTitleCaps === "boolean") ? src.forceTitleCaps : d.forceTitleCaps,
-        tagFilterMode: (src.tagFilterMode === "all" || src.tagFilterMode === "any") ? src.tagFilterMode : d.tagFilterMode,
-        previewMode: (src.previewMode === "expanded" || src.previewMode === "standard") ? src.previewMode : d.previewMode
+        forceTitleCaps: (typeof src.forceTitleCaps === "boolean") ? src.forceTitleCaps : d.forceTitleCaps
       };
       return out;
     }
@@ -1671,7 +1507,7 @@
       WS.view.filterMode = String(opt.defaultFilterMode || "all");
       WS.view.randomMode = !!opt.defaultRandomMode;
       WS.view.folderBehavior = String(opt.defaultFolderBehavior || "slide");
-      WS.view.showFolderScores = !!opt.showFolderScores;
+      WS.view.showFolderScores = !!opt.defaultShowScores;
     }
 
     function applyOptionsEverywhere(invalidateThumbs = false) {
@@ -1696,377 +1532,6 @@
       else if (ACTIVE_MEDIA_SURFACE === "preview") renderPreviewViewerItem(viewerIndex);
     }
 
-    /* =========================================================
-       Remote profiles: persistence + helpers
-       ========================================================= */
-
-    function normalizeSiteData(raw) {
-      const base = (raw && typeof raw === "object") ? raw : {};
-      const settings = (base.settings && typeof base.settings === "object") ? base.settings : {};
-      return {
-        schemaVersion: typeof base.schemaVersion === "number" ? base.schemaVersion : SITE_DATA_SCHEMA_VERSION,
-        updatedAt: base.updatedAt || null,
-        profiles: (base.profiles && typeof base.profiles === "object") ? base.profiles : {},
-        recentProfiles: Array.isArray(base.recentProfiles) ? base.recentProfiles : [],
-        settings: {
-          defaultSortMode: settings.defaultSortMode === "file-name" ? "file-name" : "site-order",
-          autoRefreshOnOpen: typeof settings.autoRefreshOnOpen === "boolean" ? settings.autoRefreshOnOpen : REMOTE_DEFAULT_SETTINGS.autoRefreshOnOpen
-        }
-      };
-    }
-
-    function siteDataMarkUpdated() {
-      SITE_DATA.updatedAt = new Date().toISOString();
-      siteDataScheduleSave();
-    }
-
-    function siteDataScheduleSave() {
-      if (SITE_DATA._saveTimer) return;
-      SITE_DATA._saveTimer = setTimeout(async () => {
-        SITE_DATA._saveTimer = null;
-        await siteDataSave();
-      }, 600);
-    }
-
-    function siteDataLocalLoad() {
-      try {
-        const raw = localStorage.getItem(SITE_DATA_LOCAL_KEY);
-        return normalizeSiteData(raw ? JSON.parse(raw) : null);
-      } catch {
-        return normalizeSiteData(null);
-      }
-    }
-
-    function siteDataLocalSave() {
-      try { localStorage.setItem(SITE_DATA_LOCAL_KEY, JSON.stringify(SITE_DATA)); } catch {}
-    }
-
-    async function siteDataEnsureFsHandle() {
-      if (!WS.meta.fsSysDirHandle) return null;
-      try {
-        if (!WS.meta.fsSiteDataFileHandle) {
-          WS.meta.fsSiteDataFileHandle = await WS.meta.fsSysDirHandle.getFileHandle(SITE_DATA_FILE_NAME, { create: true });
-        }
-        return WS.meta.fsSiteDataFileHandle;
-      } catch {
-        return null;
-      }
-    }
-
-    async function siteDataLoadFs() {
-      const fh = await siteDataEnsureFsHandle();
-      if (!fh) return null;
-      try {
-        const f = await fh.getFile();
-        const txt = await f.text();
-        return normalizeSiteData(txt ? JSON.parse(txt) : null);
-      } catch {
-        return null;
-      }
-    }
-
-    async function siteDataSaveFs() {
-      const fh = await siteDataEnsureFsHandle();
-      if (!fh) return false;
-      try {
-        const writable = await fh.createWritable();
-        await writable.write(JSON.stringify(SITE_DATA));
-        await writable.close();
-        return true;
-      } catch {
-        return false;
-      }
-    }
-
-    async function siteDataLoad() {
-      SITE_DATA = siteDataLocalLoad();
-      if (WS.meta && WS.meta.fsSysDirHandle) {
-        const fsData = await siteDataLoadFs();
-        if (fsData && Object.keys(fsData.profiles || {}).length) {
-          SITE_DATA = fsData;
-          siteDataLocalSave();
-        }
-      }
-      renderRemoteProfilesUi();
-      return SITE_DATA;
-    }
-
-    async function siteDataSave() {
-      siteDataLocalSave();
-      if (WS.meta && WS.meta.fsSysDirHandle) {
-        await siteDataSaveFs();
-      }
-    }
-
-    function recordRecentProfile(key) {
-      const list = SITE_DATA.recentProfiles || [];
-      const next = [key, ...list.filter(k => k !== key)].slice(0, 8);
-      SITE_DATA.recentProfiles = next;
-      siteDataMarkUpdated();
-    }
-
-    function profileKeyFromParts(host, service, userId) {
-      return `${host}::${service}::${userId}`;
-    }
-
-    function parseProfileUrl(input) {
-      const raw = String(input || "").trim();
-      if (!raw) return null;
-      let url = null;
-      try {
-        url = raw.startsWith("http") ? new URL(raw) : new URL(`https://${raw}`);
-      } catch {
-        return null;
-      }
-      const host = url.host;
-      const parts = url.pathname.split("/").filter(Boolean);
-      if (parts.length < 3 || parts[1] !== "user") return null;
-      const service = parts[0];
-      const userId = parts[2];
-      if (!service || !userId) return null;
-      return {
-        host,
-        origin: url.origin,
-        service,
-        userId,
-        key: profileKeyFromParts(host, service, userId),
-        url: `${url.origin}/${service}/user/${userId}`
-      };
-    }
-
-    function getProfileDisplayName(profile) {
-      if (!profile) return "Remote Profile";
-      return profile.displayName || `${profile.service}/${profile.userId}`;
-    }
-
-    function normalizeProfileEntry(entry, parsed) {
-      const base = entry && typeof entry === "object" ? entry : {};
-      const tags = Array.isArray(base.tags) ? base.tags : [];
-      return {
-        key: parsed?.key || base.key || "",
-        host: parsed?.host || base.host || "",
-        origin: parsed?.origin || base.origin || "",
-        service: parsed?.service || base.service || "",
-        userId: parsed?.userId || base.userId || "",
-        url: parsed?.url || base.url || "",
-        displayName: base.displayName || "",
-        tags,
-        sortMode: base.sortMode === "file-name" ? "file-name" : (base.sortMode || SITE_DATA.settings.defaultSortMode || "site-order"),
-        lastFetchedAt: base.lastFetchedAt || null,
-        lastSeenPostId: base.lastSeenPostId || null,
-        totalPosts: typeof base.totalPosts === "number" ? base.totalPosts : 0,
-        totalFiles: typeof base.totalFiles === "number" ? base.totalFiles : 0,
-        posts: Array.isArray(base.posts) ? base.posts : [],
-        complete: !!base.complete
-      };
-    }
-
-    function inferFileTypeFromName(name) {
-      if (isVideoName(name)) return "video";
-      if (isImageName(name)) return "image";
-      return "";
-    }
-
-    function extractFilenameFromUrl(url) {
-      try {
-        const u = new URL(url);
-        const name = u.pathname.split("/").pop() || "";
-        return name || "file";
-      } catch {
-        const part = String(url || "").split("?")[0].split("/").pop();
-        return part || "file";
-      }
-    }
-
-    function resolveRemoteFileUrl(profile, value) {
-      const raw = String(value || "");
-      if (!raw) return "";
-      if (raw.startsWith("http")) return raw;
-      const base = profile?.origin || profile?.url || "";
-      if (!base) return raw;
-      const trimmed = raw.startsWith("/") ? raw : `/${raw}`;
-      return `${base}${trimmed}`;
-    }
-
-    function normalizeRemoteFileEntry(fileObj, index, profile) {
-      const raw = (fileObj && (fileObj.url || fileObj.path)) ? String(fileObj.url || fileObj.path) : "";
-      const url = resolveRemoteFileUrl(profile, raw);
-      if (!url) return null;
-      const name = fileObj.name || extractFilenameFromUrl(url);
-      const type = inferFileTypeFromName(name) || (fileObj.isVid ? "video" : "image");
-      if (!type) return null;
-      return {
-        url,
-        name,
-        type,
-        order: typeof fileObj.order === "number" ? fileObj.order : index,
-        size: typeof fileObj.size === "number" ? fileObj.size : null
-      };
-    }
-
-    function normalizeRemotePost(post, orderIndex, profile) {
-      const id = post?.id != null ? String(post.id) : "";
-      if (!id) return null;
-      const title = post.title || post.name || `post_${id}`;
-      const published = post.published || post.published_at || post.added || post.added_at || post.created || post.created_at || post.posted || post.posted_at || null;
-      const baseFiles = [];
-      const addFile = (obj, idx) => {
-        const entry = normalizeRemoteFileEntry(obj, idx, profile);
-        if (entry) baseFiles.push(entry);
-      };
-      let idx = 1;
-      if (post.file) { addFile(post.file, idx); idx += 1; }
-      if (Array.isArray(post.attachments)) {
-        for (const att of post.attachments) {
-          addFile(att, idx);
-          idx += 1;
-        }
-      }
-      return {
-        id,
-        title,
-        published,
-        order: typeof orderIndex === "number" ? orderIndex : 0,
-        files: baseFiles
-      };
-    }
-
-    function updateProfileCounts(profile) {
-      let totalPosts = 0;
-      let totalFiles = 0;
-      if (profile && Array.isArray(profile.posts)) {
-        totalPosts = profile.posts.length;
-        for (const post of profile.posts) {
-          if (post && Array.isArray(post.files)) totalFiles += post.files.length;
-        }
-      }
-      profile.totalPosts = totalPosts;
-      profile.totalFiles = totalFiles;
-    }
-
-    function mergePostsIntoProfile(profile, posts, { prepend } = {}) {
-      if (!profile || !Array.isArray(posts)) return;
-      const existing = new Set(profile.posts.map(p => String(p.id)));
-      const normalized = [];
-      for (const post of posts) {
-        if (!post || !post.id) continue;
-        if (existing.has(String(post.id))) continue;
-        normalized.push(post);
-      }
-      if (!normalized.length) return;
-      if (prepend) {
-        profile.posts = normalized.concat(profile.posts);
-      } else {
-        profile.posts = profile.posts.concat(normalized);
-      }
-      updateProfileCounts(profile);
-    }
-
-    function profilePostSort(profile) {
-      if (!profile) return [];
-      const arr = profile.posts.slice();
-      arr.sort((a, b) => (a.order || 0) - (b.order || 0));
-      return arr;
-    }
-
-    function profileLabel(profile) {
-      if (!profile) return "Remote Profile";
-      const display = profile.displayName || `${profile.service}/${profile.userId}`;
-      return display;
-    }
-
-    function buildWorkspaceFromRemoteProfile(profile) {
-      if (!profile) return;
-      resetWorkspace();
-
-      WS.root = makeDirNode(profileLabel(profile), null);
-      WS.root.path = "";
-      WS.root.preserveOrder = true;
-      WS.root.isRemote = true;
-      WS.root.remoteMeta = { key: profile.key };
-      WS.dirByPath.set("", WS.root);
-
-      const posts = profilePostSort(profile);
-      const preferSiteOrder = profile.sortMode !== "file-name";
-
-      for (const post of posts) {
-        if (!post) continue;
-        const orderLabel = String(post.order || posts.indexOf(post) + 1).padStart(3, "0");
-        const safeTitle = String(post.title || "post").replace(/[\\/:*?"<>|]+/g, "").trim() || "post";
-        const postName = `${orderLabel} - ${safeTitle} (${post.id})`;
-        const dirPath = postName;
-        const node = makeDirNode(postName, WS.root);
-        node.path = dirPath;
-        node.preserveOrder = preferSiteOrder;
-        node.isRemote = true;
-        node.remoteMeta = { postId: post.id };
-        WS.dirByPath.set(dirPath, node);
-        WS.root.childrenDirs.push(node);
-
-        const files = Array.isArray(post.files) ? post.files.slice() : [];
-        if (!preferSiteOrder) {
-          files.sort((a, b) => compareIndexedNames(a?.name || "", b?.name || ""));
-        }
-        let fileIndex = 1;
-        for (const file of files) {
-          if (!file || !file.url) continue;
-          const name = file.name || extractFilenameFromUrl(file.url);
-          const relPath = `${postName}/${name}`;
-          const id = `remote::${profile.key}::${post.id}::${fileIndex}`;
-          const extDot = name.lastIndexOf(".");
-          const ext = extDot >= 0 ? name.slice(extDot).toLowerCase() : "";
-          const rec = {
-            id,
-            file: null,
-            name,
-            relPath,
-            dirPath,
-            ext,
-            type: file.type || inferFileTypeFromName(name),
-            size: file.size || 0,
-            lastModified: 0,
-            url: null,
-            thumbUrl: null,
-            videoThumbUrl: null,
-            indices: null,
-            thumbMode: null,
-            videoThumbMode: null,
-            isRemote: true,
-            remoteUrl: file.url,
-            remoteMeta: { profileKey: profile.key, postId: post.id, order: file.order || fileIndex }
-          };
-          WS.fileById.set(id, rec);
-          node.childrenFiles.push(id);
-          fileIndex += 1;
-        }
-      }
-
-      WS.view.randomSeed = computeWorkspaceSeed();
-      WS.view.randomCache = new Map();
-      WS.view.dirLoopRepeats = 3;
-      WS.view.previewLoopRepeats = 3;
-
-      WS.meta.storageMode = "local";
-      WS.meta.storageKey = `remote::${profile.key}`;
-      metaInitForCurrentWorkspace();
-
-      WS.nav.dirNode = WS.root;
-      syncBulkSelectionForCurrentDir();
-      syncFavoritesUi();
-      syncTagUiForCurrentDir();
-      rebuildDirectoriesEntries();
-      WS.nav.selectedIndex = 0;
-      WS.nav.selectedIndex = findNearestSelectableIndex(WS.nav.selectedIndex, 1);
-      syncPreviewToSelection();
-
-      renderDirectoriesPane();
-      renderPreviewPane(true);
-      syncButtons();
-      kickVideoThumbsForPreview();
-      kickImageThumbsForPreview();
-      syncMetaButtons();
-    }
-
     const WS = {
       root: null,
       fileById: new Map(),   // id -> FileRecord
@@ -2084,7 +1549,6 @@
         fsScoresFileHandle: null,
         fsTagsFileHandle: null,
         fsOptionsFileHandle: null,
-        fsSiteDataFileHandle: null,
         fsLegacyFileHandle: null,
         saveTimer: null,
         dirty: false,
@@ -2157,16 +1621,13 @@
          id, file, name, relPath, dirPath, ext, type,
          size, lastModified,
          url, thumbUrl, videoThumbUrl,
-         indices,
-         isRemote, remoteUrl, remoteMeta
+         indices
        }
     */
 
     function revokeAllObjectURLs() {
       for (const it of WS.fileById.values()) {
-        if (it.url && typeof it.url === "string" && it.url.startsWith("blob:")) {
-          try { URL.revokeObjectURL(it.url); } catch {}
-        }
+        try { if (it.url) URL.revokeObjectURL(it.url); } catch {}
         try { if (it.thumbUrl) URL.revokeObjectURL(it.thumbUrl); } catch {}
         try { if (it.videoThumbUrl) URL.revokeObjectURL(it.videoThumbUrl); } catch {}
         it.url = null;
@@ -2194,7 +1655,6 @@
       WS.meta.fsScoresFileHandle = null;
       WS.meta.fsTagsFileHandle = null;
       WS.meta.fsOptionsFileHandle = null;
-      WS.meta.fsSiteDataFileHandle = null;
       WS.meta.fsLegacyFileHandle = null;
       WS.meta.dirty = false;
       WS.meta.options = normalizeOptions(null);
@@ -2260,7 +1720,6 @@
     // Title Pane
     const helpBtn = $("helpBtn");
     const optionsBtn = $("optionsBtn");
-    const openRemoteBtn = $("openRemoteBtn");
     const openWritableBtn = $("openWritableBtn");
 
     // Help Overlay
@@ -2280,8 +1739,10 @@
     // Directories Pane
     const directoriesPathEl = $("directoriesPath");
     const directoriesListEl = $("directoriesList");
-    const favoritesBtn = $("favoritesBtn");
+    const sortModeBtn = $("sortModeBtn");
+    const toggleScoresBtn = $("toggleScoresBtn");
     const toggleTagsBtn = $("toggleTagsBtn");
+    const directoriesFavoritesRowEl = $("directoriesFavoritesRow");
     const directoriesTagsRowEl = $("directoriesTagsRow");
     const directoriesBulkRowEl = $("directoriesBulkRow");
     const directoriesSearchInput = $("directoriesSearchInput");
@@ -2444,20 +1905,12 @@
       const r = WS.view.randomMode ? "On" : "Off";
       const b = WS.view.folderBehavior === "loop" ? "Loop" : (WS.view.folderBehavior === "slide" ? "Slide" : "Stop");
       const s = WS.meta.dirSortMode === "score" ? "Score" : "Name";
-      const storage = REMOTE.active ? "Remote" : "Local";
-      modePill.textContent = `Mode: ${storage} | Media filter: ${f} | Random mode: ${r} | Folder behavior: ${b} | Dir sort: ${s}`;
-    }
-
-    function updateFavoritesButton() {
-      if (!favoritesBtn) return;
-      const count = WS.root ? getAllFavoriteDirs().length : 0;
-      favoritesBtn.textContent = `★ Favorites (${count})`;
-      favoritesBtn.disabled = !WS.root;
-      favoritesBtn.classList.toggle("active", !!WS.view.favoritesMode);
+      modePill.textContent = `Media filter: ${f} | Random mode: ${r} | Folder behavior: ${b} | Dir sort: ${s}`;
     }
 
     function syncMetaButtons() {
-      updateFavoritesButton();
+      if (sortModeBtn) sortModeBtn.textContent = `Sort: ${WS.meta.dirSortMode === "score" ? "Score" : "Name"}`;
+      if (toggleScoresBtn) toggleScoresBtn.textContent = `Scores: ${WS.view.showFolderScores ? "On" : "Off"}`;
     }
 
     /* =========================================================
@@ -2517,9 +1970,9 @@
 
       <h2>Scoring (folder scoring)</h2>
       <ul>
-        <li>Configure folder score visibility and sorting in <code>Options</code>.</li>
+        <li>Scoring defaults to the option set in <code>Preferences</code>. Toggle with <code>Scores: Off/On</code>.</li>
         <li>When enabled, folders show ▲/▼ buttons to bump their score.</li>
-        <li>Sorting by score is useful to surface favorites.</li>
+        <li>Use <code>Sort: Name/Score</code> to sort folders by score or name.</li>
       </ul>
 
       <h2>Tags (single-folder)</h2>
@@ -2574,14 +2027,6 @@
     function closeOptions() {
       OPTIONS_OPEN = false;
       if (optionsOverlay) optionsOverlay.classList.remove("active");
-    }
-
-    function openRemoteOptions() {
-      openOptions();
-      requestAnimationFrame(() => {
-        const input = $("remoteProfileInput");
-        if (input) input.focus();
-      });
     }
 
     function renderOptionsUi() {
@@ -2641,11 +2086,6 @@
         { value: "slide", label: "Slide" }
       ];
 
-      const sortModes = [
-        { value: "name", label: "Name" },
-        { value: "score", label: "Score" }
-      ];
-
       const skipSteps = [
         { value: "3", label: "3 seconds" },
         { value: "5", label: "5 seconds" },
@@ -2679,16 +2119,6 @@
         { value: "high", label: "Very high" }
       ];
 
-      const tagFilterModes = [
-        { value: "any", label: "Any selected tag (OR)" },
-        { value: "all", label: "All selected tags (AND)" }
-      ];
-
-      const previewModes = [
-        { value: "standard", label: "Standard" },
-        { value: "expanded", label: "Expanded" }
-      ];
-
       optionsBodyEl.innerHTML = `
         <div class="label" style="margin-bottom:8px;">Preferences are saved alongside scores/tags (or localStorage fallback).</div>
 
@@ -2700,12 +2130,7 @@
         ${makeSelectRow("Default media filter", "Initial filter when loading a workspace (hotkeys can still change it).", "opt_defaultFilterMode", String(opt.defaultFilterMode || "all"), filterModes)}
         ${makeSelectRow("Default random mode", "Initial random mode (hotkeys can still change it).", "opt_defaultRandomMode", opt.defaultRandomMode ? "on" : "off", onOffModes)}
         ${makeSelectRow("Default folder behavior", "Initial folder behavior (hotkeys can still change it).", "opt_defaultFolderBehavior", String(opt.defaultFolderBehavior || "slide"), folderModes)}
-
-        <h2>Directories</h2>
-        ${makeSelectRow("Folder sort", "Sort folders by name or score.", "opt_dirSortMode", WS.meta.dirSortMode === "score" ? "score" : "name", sortModes)}
-        ${makeSelectRow("Folder scores", "Show folder score controls in lists and previews.", "opt_showFolderScores", (opt.showFolderScores ? "on" : "off"), onOffModes)}
-        ${makeSelectRow("Tag filter mode", "When multiple tags are selected, match any or all tags.", "opt_tagFilterMode", String(opt.tagFilterMode || "any"), tagFilterModes)}
-        ${makeSelectRow("Preview mode", "Choose how folders are shown in the preview pane.", "opt_previewMode", String(opt.previewMode || "standard"), previewModes)}
+        ${makeSelectRow("Scores on/off default", "Initial folder score display state (hotkeys can still change it).", "opt_defaultShowScores", opt.defaultShowScores ? "on" : "off", onOffModes)}
 
         <h2>Playback</h2>
         ${makeSelectRow("Video skip step", "Seek increment for Q/E/U/O shortcuts.", "opt_videoSkipStep", String(opt.videoSkipStep || "10"), skipSteps)}
@@ -2722,27 +2147,6 @@
         ${makeCheckRow("Hide indices from display names", "Hide numeric prefixes like '01 - '.", "opt_hideIndicesInNames", !!opt.hideIndicesInNames)}
         ${makeCheckRow("Hide underscores from display names", "Replace underscores with spaces.", "opt_hideUnderscoresInNames", !!opt.hideUnderscoresInNames)}
         ${makeCheckRow("Force title caps in display names", "Apply Title Case to display names.", "opt_forceTitleCaps", !!opt.forceTitleCaps)}
-
-        <h2>Remote Profiles</h2>
-        <div class="remotePanel">
-          <div class="remoteRow">
-            <input id="remoteProfileInput" type="text" placeholder="Paste a coomer/kemono profile URL..." />
-            <button id="remoteProfileAddBtn" type="button" class="miniBtn">Open</button>
-            <button id="remoteProfileCancelBtn" type="button" class="miniBtn">Cancel</button>
-          </div>
-          <div class="remoteHint">Remote profiles stream content from the network and keep a log in <code>${SITE_DATA_FILE_NAME}</code> when a workspace is open. Loading is incremental to avoid blocking the UI.</div>
-          <div class="remoteRow">
-            <label class="label">Default file order</label>
-            <select id="remoteDefaultSort">
-              <option value="site-order">Site order</option>
-              <option value="file-name">File name</option>
-            </select>
-            <label class="label">Auto-refresh on open</label>
-            <input id="remoteAutoRefresh" type="checkbox" />
-          </div>
-          <div id="remoteProfilesList" class="remoteProfilesList"></div>
-          <div id="remoteStatusLine" class="remoteStatusLine">—</div>
-        </div>
       `;
 
       const bindSelect = (id, key, invalidateThumbs, onChange, valueParser) => {
@@ -2790,11 +2194,9 @@
       bindSelect("opt_defaultFolderBehavior", "defaultFolderBehavior", false, () => {
         applyDefaultViewFromOptions();
       });
-      bindSelect("opt_showFolderScores", "showFolderScores", false, (val) => {
-        WS.view.showFolderScores = val === "on";
+      bindSelect("opt_defaultShowScores", "defaultShowScores", false, () => {
+        applyDefaultViewFromOptions();
       }, (val) => val === "on");
-      bindSelect("opt_tagFilterMode", "tagFilterMode", false);
-      bindSelect("opt_previewMode", "previewMode", false);
       bindSelect("opt_videoSkipStep", "videoSkipStep", false);
       bindSelect("opt_preloadNextMode", "preloadNextMode", false, (val) => {
         if (val === "off") PRELOAD_CACHE = new Map();
@@ -2807,218 +2209,6 @@
       bindCheck("opt_hideIndicesInNames", "hideIndicesInNames");
       bindCheck("opt_hideUnderscoresInNames", "hideUnderscoresInNames");
       bindCheck("opt_forceTitleCaps", "forceTitleCaps");
-
-      const dirSortSelect = $("opt_dirSortMode");
-      if (dirSortSelect) {
-        dirSortSelect.addEventListener("click", (e) => e.stopPropagation());
-        dirSortSelect.addEventListener("keydown", (e) => e.stopPropagation());
-        dirSortSelect.addEventListener("change", () => {
-          WS.meta.dirSortMode = dirSortSelect.value === "score" ? "score" : "name";
-          WS.meta.dirty = true;
-          metaScheduleSave();
-          setOptionsStatus("Saved");
-          applyViewModesEverywhere(true);
-        });
-      }
-
-      const remoteInput = $("remoteProfileInput");
-      const remoteAddBtn = $("remoteProfileAddBtn");
-      const remoteCancelBtn = $("remoteProfileCancelBtn");
-      const remoteDefaultSort = $("remoteDefaultSort");
-      const remoteAutoRefresh = $("remoteAutoRefresh");
-
-      if (remoteDefaultSort) {
-        remoteDefaultSort.value = SITE_DATA.settings.defaultSortMode || "site-order";
-        remoteDefaultSort.addEventListener("change", () => {
-          SITE_DATA.settings.defaultSortMode = remoteDefaultSort.value === "file-name" ? "file-name" : "site-order";
-          siteDataMarkUpdated();
-          renderRemoteProfilesUi();
-        });
-      }
-
-      if (remoteAutoRefresh) {
-        remoteAutoRefresh.checked = !!SITE_DATA.settings.autoRefreshOnOpen;
-        remoteAutoRefresh.addEventListener("change", () => {
-          SITE_DATA.settings.autoRefreshOnOpen = !!remoteAutoRefresh.checked;
-          siteDataMarkUpdated();
-        });
-      }
-
-      if (remoteAddBtn) {
-        remoteAddBtn.addEventListener("click", () => {
-          handleRemoteProfileInput(remoteInput ? remoteInput.value : "");
-        });
-      }
-
-      if (remoteInput) {
-        remoteInput.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            handleRemoteProfileInput(remoteInput.value);
-          }
-        });
-      }
-
-      if (remoteCancelBtn) {
-        remoteCancelBtn.addEventListener("click", () => {
-          remoteAbortFetch();
-        });
-      }
-
-      renderRemoteProfilesUi();
-    }
-
-    function renderRemoteProfilesUi() {
-      const listEl = $("remoteProfilesList");
-      const statusEl = $("remoteStatusLine");
-      if (!listEl) return;
-
-      listEl.innerHTML = "";
-      const profiles = Object.values(SITE_DATA.profiles || {}).map(p => normalizeProfileEntry(p)).filter(p => p.key);
-      profiles.forEach((profile) => {
-        SITE_DATA.profiles[profile.key] = profile;
-      });
-      profiles.sort((a, b) => String(b.lastFetchedAt || "").localeCompare(String(a.lastFetchedAt || "")));
-
-      if (!profiles.length) {
-        const empty = document.createElement("div");
-        empty.className = "remoteHint";
-        empty.textContent = "No remote profiles saved yet.";
-        listEl.appendChild(empty);
-      } else {
-        for (const profile of profiles) {
-          const card = document.createElement("div");
-          card.className = "remoteProfileCard";
-
-          const header = document.createElement("div");
-          header.className = "remoteProfileHeader";
-
-          const title = document.createElement("strong");
-          title.textContent = profileLabel(profile);
-
-          const meta = document.createElement("div");
-          meta.className = "remoteProfileMeta";
-          const last = profile.lastFetchedAt ? new Date(profile.lastFetchedAt).toLocaleString() : "never";
-          const completeness = profile.complete ? "complete" : "partial";
-          meta.textContent = `${profile.service}/${profile.userId} • ${profile.totalPosts || 0} posts • ${profile.totalFiles || 0} files • ${completeness} cache • last fetch: ${last}`;
-
-          const link = document.createElement("a");
-          link.href = profile.url || "#";
-          link.target = "_blank";
-          link.rel = "noopener";
-          link.className = "remoteProfileMeta";
-          link.textContent = profile.url || "";
-
-          header.appendChild(title);
-          header.appendChild(meta);
-          header.appendChild(link);
-
-          const actions = document.createElement("div");
-          actions.className = "remoteRow";
-
-          const openBtn = document.createElement("button");
-          openBtn.type = "button";
-          openBtn.className = "miniBtn";
-          openBtn.textContent = "Open";
-          openBtn.addEventListener("click", () => {
-            openRemoteProfileByKey(profile.key, { refresh: false });
-          });
-
-          const refreshBtn = document.createElement("button");
-          refreshBtn.type = "button";
-          refreshBtn.className = "miniBtn";
-          refreshBtn.textContent = "Refresh";
-          refreshBtn.addEventListener("click", () => {
-            refreshRemoteProfile(profile, { fullFetch: !profile.complete });
-          });
-
-          const copyBtn = document.createElement("button");
-          copyBtn.type = "button";
-          copyBtn.className = "miniBtn";
-          copyBtn.textContent = "Copy URL";
-          copyBtn.addEventListener("click", () => {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-              navigator.clipboard.writeText(profile.url || "");
-            }
-          });
-
-          const removeBtn = document.createElement("button");
-          removeBtn.type = "button";
-          removeBtn.className = "miniBtn";
-          removeBtn.textContent = "Remove";
-          removeBtn.addEventListener("click", () => {
-            delete SITE_DATA.profiles[profile.key];
-            siteDataMarkUpdated();
-            renderRemoteProfilesUi();
-          });
-
-          const sortLabel = document.createElement("span");
-          sortLabel.className = "label";
-          sortLabel.textContent = "Sort:";
-
-          const sortSelect = document.createElement("select");
-          sortSelect.innerHTML = `
-            <option value="site-order">Site order</option>
-            <option value="file-name">File name</option>
-          `;
-          sortSelect.value = profile.sortMode === "file-name" ? "file-name" : "site-order";
-          sortSelect.addEventListener("change", () => {
-            profile.sortMode = sortSelect.value === "file-name" ? "file-name" : "site-order";
-            SITE_DATA.profiles[profile.key] = profile;
-            siteDataMarkUpdated();
-            if (REMOTE.active && REMOTE.profileKey === profile.key) {
-              buildWorkspaceFromRemoteProfile(profile);
-            }
-          });
-
-          const tagBtn = document.createElement("button");
-          tagBtn.type = "button";
-          tagBtn.className = "miniBtn";
-          tagBtn.textContent = "Edit tags";
-          tagBtn.addEventListener("click", () => {
-            const current = (profile.tags || []).join(", ");
-            const next = window.prompt("Edit profile tags (comma-separated):", current);
-            if (next === null) return;
-            profile.tags = next.split(",").map(t => t.trim()).filter(Boolean);
-            SITE_DATA.profiles[profile.key] = profile;
-            siteDataMarkUpdated();
-            renderRemoteProfilesUi();
-          });
-
-          actions.appendChild(openBtn);
-          actions.appendChild(refreshBtn);
-          actions.appendChild(copyBtn);
-          actions.appendChild(removeBtn);
-          actions.appendChild(sortLabel);
-          actions.appendChild(sortSelect);
-          actions.appendChild(tagBtn);
-
-          const tagsWrap = document.createElement("div");
-          tagsWrap.className = "remoteProfileTags";
-          if (profile.tags && profile.tags.length) {
-            for (const tag of profile.tags) {
-              const chip = document.createElement("span");
-              chip.className = "remoteTag";
-              chip.textContent = tag;
-              tagsWrap.appendChild(chip);
-            }
-          } else {
-            const none = document.createElement("span");
-            none.className = "remoteHint";
-            none.textContent = "No tags";
-            tagsWrap.appendChild(none);
-          }
-
-          card.appendChild(header);
-          card.appendChild(actions);
-          card.appendChild(tagsWrap);
-          listEl.appendChild(card);
-        }
-      }
-
-      if (statusEl) {
-        statusEl.textContent = REMOTE.status || "—";
-      }
     }
 
     function resetOptionsToDefaults() {
@@ -3026,13 +2216,11 @@
       WS.meta.dirty = true;
       metaScheduleSave();
       setOptionsStatus("Reset");
-      applyDefaultViewFromOptions();
       renderOptionsUi();
       applyOptionsEverywhere(true);
     }
 
     if (optionsBtn) optionsBtn.addEventListener("click", () => openOptions());
-    if (openRemoteBtn) openRemoteBtn.addEventListener("click", () => openRemoteOptions());
     if (optionsCloseBtn) optionsCloseBtn.addEventListener("click", () => closeOptions());
     if (optionsDoneBtn) optionsDoneBtn.addEventListener("click", () => closeOptions());
     if (optionsResetBtn) optionsResetBtn.addEventListener("click", () => resetOptionsToDefaults());
@@ -3627,14 +2815,12 @@
         const scoresFile = await sys.getFileHandle("folder-scores.log.json", { create: true });
         const tagsFile = await sys.getFileHandle("folder-tags.log.json", { create: true });
         const optionsFile = await sys.getFileHandle("preferences.log.json", { create: true });
-        const siteDataFile = await sys.getFileHandle(SITE_DATA_FILE_NAME, { create: true });
         const legacyFile = await sys.getFileHandle("folder-votes.log.json", { create: true });
         WS.meta.fsRootHandle = rootHandle;
         WS.meta.fsSysDirHandle = sys;
         WS.meta.fsScoresFileHandle = scoresFile;
         WS.meta.fsTagsFileHandle = tagsFile;
         WS.meta.fsOptionsFileHandle = optionsFile;
-        WS.meta.fsSiteDataFileHandle = siteDataFile;
         WS.meta.fsLegacyFileHandle = legacyFile;
         WS.meta.storageMode = "fs";
         return true;
@@ -3737,10 +2923,6 @@
 
     function buildWorkspaceFromFiles(fileList) {
       resetWorkspace();
-      REMOTE.active = false;
-      REMOTE.profileKey = "";
-      REMOTE.profile = null;
-      REMOTE.status = "";
 
       WS.root = makeDirNode("root", null);
       WS.root.path = "";
@@ -3841,10 +3023,6 @@
 
     async function buildWorkspaceFromDirectoryHandle(rootHandle) {
       resetWorkspace();
-      REMOTE.active = false;
-      REMOTE.profileKey = "";
-      REMOTE.profile = null;
-      REMOTE.status = "";
 
       WS.root = makeDirNode("root", null);
       WS.root.path = "";
@@ -3912,7 +3090,6 @@
         WS.meta.storageKey = String(WS.view.randomSeed >>> 0);
         await metaInitForCurrentWorkspaceFs();
       }
-      await siteDataLoad();
 
       WS.nav.dirNode = WS.root;
       syncBulkSelectionForCurrentDir();
@@ -3939,163 +3116,6 @@
         await buildWorkspaceFromDirectoryHandle(rootHandle);
       } catch {}
     });
-
-    async function remoteAbortFetch() {
-      if (REMOTE.controller) {
-        try { REMOTE.controller.abort(); } catch {}
-        REMOTE.controller = null;
-      }
-      REMOTE.loading = false;
-      REMOTE.status = "Canceled";
-      renderRemoteProfilesUi();
-    }
-
-    function remoteSetStatus(text) {
-      REMOTE.status = text;
-      renderRemoteProfilesUi();
-      showStatusMessage(text);
-    }
-
-    async function fetchProfilePage(profile, offset, signal) {
-      const base = profile.origin || profile.url;
-      const url = `${base}/api/v1/${profile.service}/user/${profile.userId}/posts?o=${offset}`;
-      const resp = await fetch(url, { method: "GET", signal });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const data = await resp.json();
-      const list = Array.isArray(data) ? data : (data && (data.results || data.posts)) || [];
-      return Array.isArray(list) ? list : [];
-    }
-
-    async function refreshRemoteProfile(profile, { fullFetch } = {}) {
-      if (!profile) return;
-      if (REMOTE.loading) await remoteAbortFetch();
-      const controller = new AbortController();
-      REMOTE.controller = controller;
-      REMOTE.loading = true;
-      REMOTE.profileKey = profile.key;
-      REMOTE.profile = profile;
-      REMOTE.loadedPosts = 0;
-      REMOTE.loadedFiles = 0;
-      REMOTE.loadStartedAt = Date.now();
-      remoteSetStatus("Fetching remote profile...");
-
-      let offset = 0;
-      let pageIndex = 0;
-      let keepFetching = true;
-      let appended = false;
-      let complete = !!profile.complete;
-
-      try {
-        while (keepFetching) {
-          const page = await fetchProfilePage(profile, offset, controller.signal);
-          if (!page.length) break;
-          const normalized = page.map((post, idx) => normalizeRemotePost(post, (pageIndex * REMOTE_PAGE_SIZE) + idx + 1, profile)).filter(Boolean);
-          if (!normalized.length) break;
-          if (!profile.posts.length) {
-            mergePostsIntoProfile(profile, normalized, { prepend: false });
-            appended = true;
-          } else if (!fullFetch && profile.lastSeenPostId) {
-            const newOnes = [];
-            for (const post of normalized) {
-              if (String(post.id) === String(profile.lastSeenPostId)) {
-                keepFetching = false;
-                break;
-              }
-              newOnes.push(post);
-            }
-            if (newOnes.length) {
-              mergePostsIntoProfile(profile, newOnes, { prepend: true });
-              appended = true;
-            }
-            if (!newOnes.length) {
-              keepFetching = false;
-            }
-          } else {
-            mergePostsIntoProfile(profile, normalized, { prepend: false });
-            appended = true;
-          }
-
-          pageIndex += 1;
-          offset = pageIndex * REMOTE_PAGE_SIZE;
-          REMOTE.loadedPosts = profile.posts.length;
-          updateProfileCounts(profile);
-          REMOTE.loadedFiles = profile.totalFiles;
-          const status = `Loaded ${profile.totalPosts} posts (${profile.totalFiles} files)...`;
-          remoteSetStatus(status);
-          if (REMOTE.active && REMOTE.profileKey === profile.key) {
-            buildWorkspaceFromRemoteProfile(profile);
-          }
-
-          if (normalized.length < REMOTE_PAGE_SIZE) {
-            complete = true;
-            break;
-          }
-          await new Promise((resolve) => setTimeout(resolve, REMOTE_FETCH_DELAY_MS));
-        }
-        if (profile.posts.length) {
-          const ordered = profilePostSort(profile);
-          profile.lastSeenPostId = ordered[0]?.id || profile.lastSeenPostId;
-        }
-        profile.lastFetchedAt = new Date().toISOString();
-        if (fullFetch) complete = true;
-        profile.complete = complete;
-        updateProfileCounts(profile);
-        SITE_DATA.profiles[profile.key] = profile;
-        siteDataMarkUpdated();
-        const doneLabel = appended ? "Remote profile updated." : "Remote profile is up to date.";
-        remoteSetStatus(doneLabel);
-        if (REMOTE.active && REMOTE.profileKey === profile.key) {
-          buildWorkspaceFromRemoteProfile(profile);
-        }
-      } catch (err) {
-        if (controller.signal.aborted) {
-          remoteSetStatus("Remote fetch canceled.");
-        } else {
-          remoteSetStatus("Remote fetch failed.");
-        }
-      } finally {
-        REMOTE.loading = false;
-        REMOTE.controller = null;
-      }
-    }
-
-    async function openRemoteProfileByKey(profileKey, { refresh } = {}) {
-      if (!profileKey) return;
-      const existing = SITE_DATA.profiles[profileKey];
-      if (!existing) return;
-      const profile = normalizeProfileEntry(existing);
-      SITE_DATA.profiles[profileKey] = profile;
-      REMOTE.active = true;
-      REMOTE.profileKey = profileKey;
-      REMOTE.profile = profile;
-      REMOTE.status = `Opened ${profileLabel(profile)}.`;
-      recordRecentProfile(profileKey);
-      buildWorkspaceFromRemoteProfile(profile);
-      renderRemoteProfilesUi();
-
-      const shouldRefresh = refresh || (SITE_DATA.settings.autoRefreshOnOpen && !REMOTE.loading);
-      if (shouldRefresh) {
-        await refreshRemoteProfile(profile, { fullFetch: !profile.complete });
-      }
-    }
-
-    async function handleRemoteProfileInput(input) {
-      const parsed = parseProfileUrl(input);
-      if (!parsed) {
-        remoteSetStatus("Invalid profile URL.");
-        return;
-      }
-      const existing = SITE_DATA.profiles[parsed.key];
-      const profile = normalizeProfileEntry(existing, parsed);
-      profile.url = parsed.url;
-      profile.origin = parsed.origin;
-      profile.service = parsed.service;
-      profile.userId = parsed.userId;
-      if (!profile.sortMode) profile.sortMode = SITE_DATA.settings.defaultSortMode;
-      SITE_DATA.profiles[parsed.key] = profile;
-      siteDataMarkUpdated();
-      await openRemoteProfileByKey(parsed.key, { refresh: true });
-    }
 
     /* =========================================================
        Sorting helpers
@@ -4201,8 +3221,7 @@
 
     function getChildDirsForNodeBase(dirNode) {
       if (!dirNode) return [];
-      const ordered = dirNode.preserveOrder ? dirNode.childrenDirs.slice() : sortDirsForDisplay(dirNode.childrenDirs);
-      const base = ordered.filter(d => dirItemCount(d) > 0);
+      const base = sortDirsForDisplay(dirNode.childrenDirs).filter(d => dirItemCount(d) > 0);
       return base;
     }
 
@@ -4230,24 +3249,12 @@
       return eff;
     }
 
-    function tagFilterMode() {
-      const opt = WS.meta && WS.meta.options ? WS.meta.options : null;
-      return opt && opt.tagFilterMode === "all" ? "all" : "any";
-    }
-
-    function dirMatchesTagFilters(dirNode, filterSet) {
+    function dirHasAnySelectedTag(dirNode, filterSet) {
       if (!dirNode) return false;
       if (!filterSet || !filterSet.size) return true;
       const tags = metaGetUserTags(dirNode.path || "");
       if (!tags.length) return false;
-      const tagSet = new Set(tags);
-      if (tagFilterMode() === "all") {
-        for (const t of filterSet) {
-          if (!tagSet.has(t)) return false;
-        }
-        return true;
-      }
-      for (const t of tagSet) {
+      for (const t of tags) {
         if (filterSet.has(t)) return true;
       }
       return false;
@@ -4257,7 +3264,7 @@
       const base = getChildDirsForNodeBase(dirNode);
       const eff = getEffectiveTagFiltersForDir(dirNode);
       if (!eff) return base;
-      return base.filter(d => dirMatchesTagFilters(d, eff));
+      return base.filter(d => dirHasAnySelectedTag(d, eff));
     }
 
     function getVisibleSiblingDirsForSlide(dirNode) {
@@ -4276,7 +3283,7 @@
       let out = getChildDirsForNodeBase(p);
 
       const eff = getEffectiveTagFiltersForDir(p);
-      if (eff) out = out.filter(d => dirMatchesTagFilters(d, eff));
+      if (eff) out = out.filter(d => dirHasAnySelectedTag(d, eff));
 
       return out;
     }
@@ -4387,7 +3394,7 @@
     }
 
     function syncFavoritesUi() {
-      updateFavoritesButton();
+      if (!directoriesFavoritesRowEl) return;
     }
 
     function syncTagUiForCurrentDir() {
@@ -4624,73 +3631,92 @@
       return p || "root";
     }
 
-    function toggleFavoritesView() {
+    function renderDirectoriesFavoritesHeader() {
+      if (!directoriesFavoritesRowEl) return;
+
+      directoriesFavoritesRowEl.innerHTML = "";
+      directoriesFavoritesRowEl.style.display = "none";
+
       if (!WS.root) return;
 
-      if (!WS.view.favoritesMode) {
-        const entry = WS.nav.entries[WS.nav.selectedIndex] || null;
-        WS.view.favoritesReturnState = {
-          dirPath: String(WS.nav.dirNode?.path || ""),
-          sel: entry ? (entry.kind === "dir" ? { kind: "dir", path: String(entry.node?.path || "") } : { kind: "file", id: String(entry.id || "") }) : null
-        };
-        WS.view.favoritesMode = true;
-        WS.view.favoritesRootActive = true;
-        WS.view.favoritesAnchorPath = "";
-      } else {
-        WS.view.favoritesMode = false;
-        WS.view.favoritesRootActive = false;
-        WS.view.favoritesAnchorPath = "";
+      const favDirs = getAllFavoriteDirs();
+      const n = favDirs.length;
 
-        const st = WS.view.favoritesReturnState;
-        WS.view.favoritesReturnState = null;
+      if (!n) return;
 
-        if (st && WS.root) {
-          const dn = WS.dirByPath.get(String(st.dirPath || "")) || WS.root;
-          WS.nav.dirNode = dn;
-          syncBulkSelectionForCurrentDir();
-          syncFavoritesUi();
-          syncTagUiForCurrentDir();
-          rebuildDirectoriesEntries();
+      directoriesFavoritesRowEl.style.display = "flex";
 
-          let idx = 0;
-          if (st.sel && st.sel.kind === "dir") {
-            const p = String(st.sel.path || "");
-            for (let i = 0; i < WS.nav.entries.length; i++) {
-              const e2 = WS.nav.entries[i];
-              if (e2 && e2.kind === "dir" && String(e2.node?.path || "") === p) { idx = i; break; }
+      const chip = document.createElement("span");
+      chip.className = "tag" + (WS.view.favoritesMode ? " sel" : "");
+      chip.textContent = `favorites (${n})`;
+      chip.style.cursor = "pointer";
+      chip.title = "Toggle favorites view";
+      chip.addEventListener("click", (e) => {
+        e.stopPropagation();
+
+        if (!WS.view.favoritesMode) {
+          const entry = WS.nav.entries[WS.nav.selectedIndex] || null;
+          WS.view.favoritesReturnState = {
+            dirPath: String(WS.nav.dirNode?.path || ""),
+            sel: entry ? (entry.kind === "dir" ? { kind: "dir", path: String(entry.node?.path || "") } : { kind: "file", id: String(entry.id || "") }) : null
+          };
+          WS.view.favoritesMode = true;
+          WS.view.favoritesRootActive = true;
+          WS.view.favoritesAnchorPath = "";
+        } else {
+          WS.view.favoritesMode = false;
+          WS.view.favoritesRootActive = false;
+          WS.view.favoritesAnchorPath = "";
+
+          const st = WS.view.favoritesReturnState;
+          WS.view.favoritesReturnState = null;
+
+          if (st && WS.root) {
+            const dn = WS.dirByPath.get(String(st.dirPath || "")) || WS.root;
+            WS.nav.dirNode = dn;
+            syncBulkSelectionForCurrentDir();
+            syncFavoritesUi();
+            syncTagUiForCurrentDir();
+            rebuildDirectoriesEntries();
+
+            let idx = 0;
+            if (st.sel && st.sel.kind === "dir") {
+              const p = String(st.sel.path || "");
+              for (let i = 0; i < WS.nav.entries.length; i++) {
+                const e2 = WS.nav.entries[i];
+                if (e2 && e2.kind === "dir" && String(e2.node?.path || "") === p) { idx = i; break; }
+              }
+            } else if (st.sel && st.sel.kind === "file") {
+              const id = String(st.sel.id || "");
+              for (let i = 0; i < WS.nav.entries.length; i++) {
+                const e2 = WS.nav.entries[i];
+                if (e2 && e2.kind === "file" && String(e2.id || "") === id) { idx = i; break; }
+              }
             }
-          } else if (st.sel && st.sel.kind === "file") {
-            const id = String(st.sel.id || "");
-            for (let i = 0; i < WS.nav.entries.length; i++) {
-              const e2 = WS.nav.entries[i];
-              if (e2 && e2.kind === "file" && String(e2.id || "") === id) { idx = i; break; }
-            }
+            WS.nav.selectedIndex = findNearestSelectableIndex(idx, 1);
+            syncPreviewToSelection();
+            renderDirectoriesPane(true);
+            renderPreviewPane(true, true);
+            syncButtons();
+            kickVideoThumbsForPreview();
+            kickImageThumbsForPreview();
+            return;
           }
-          WS.nav.selectedIndex = findNearestSelectableIndex(idx, 1);
-          syncPreviewToSelection();
-          renderDirectoriesPane(true);
-          renderPreviewPane(true, true);
-          syncButtons();
-          kickVideoThumbsForPreview();
-          kickImageThumbsForPreview();
-          return;
         }
-      }
 
-      TAG_EDIT_PATH = null;
-      closeBulkTagPanel();
-      rebuildDirectoriesEntries();
-      WS.nav.selectedIndex = findNearestSelectableIndex(0, 1);
-      syncPreviewToSelection();
-      renderDirectoriesPane(true);
-      renderPreviewPane(true, true);
-      syncButtons();
-      kickVideoThumbsForPreview();
-      kickImageThumbsForPreview();
-    }
+        TAG_EDIT_PATH = null;
+        closeBulkTagPanel();
+        rebuildDirectoriesEntries();
+        WS.nav.selectedIndex = findNearestSelectableIndex(0, 1);
+        syncPreviewToSelection();
+        renderDirectoriesPane(true);
+        renderPreviewPane(true, true);
+        syncButtons();
+        kickVideoThumbsForPreview();
+        kickImageThumbsForPreview();
+      });
 
-    function renderDirectoriesFavoritesHeader() {
-      updateFavoritesButton();
+      directoriesFavoritesRowEl.appendChild(chip);
     }
 
     function renderDirectoriesTagsHeader() {
@@ -5141,12 +4167,22 @@
       WS.view.scrollBusyDirs = false;
     });
 
-    if (favoritesBtn) {
-      favoritesBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        toggleFavoritesView();
-      });
-    }
+    sortModeBtn.addEventListener("click", () => {
+      WS.meta.dirSortMode = WS.meta.dirSortMode === "score" ? "name" : "score";
+      WS.meta.dirty = true;
+      metaScheduleSave();
+      syncMetaButtons();
+      applyViewModesEverywhere(true);
+      syncButtons();
+    });
+
+    toggleScoresBtn.addEventListener("click", () => {
+      WS.view.showFolderScores = !WS.view.showFolderScores;
+      syncMetaButtons();
+      renderDirectoriesPane(true);
+      renderPreviewPane(false, true);
+      syncButtons();
+    });
 
     toggleTagsBtn.addEventListener("click", () => {
       if (!WS.root || !WS.nav.dirNode) return;
@@ -5419,7 +4455,6 @@
     function ensureThumbUrl(rec) {
       if (!rec) return null;
       if (rec.type !== "image") return rec.thumbUrl || null;
-      if (rec.isRemote && rec.remoteUrl) return rec.remoteUrl;
 
       const opt = WS.meta && WS.meta.options ? WS.meta.options : null;
       const mode = opt ? String(opt.imageThumbSize || "medium") : "medium";
@@ -5448,10 +4483,6 @@
 
     function ensureMediaUrl(rec) {
       if (!rec) return null;
-      if (rec.isRemote && rec.remoteUrl) {
-        rec.url = rec.remoteUrl;
-        return rec.remoteUrl;
-      }
       if (rec.url) return rec.url;
       try { rec.url = URL.createObjectURL(rec.file); return rec.url; } catch { return null; }
     }
@@ -5741,161 +4772,6 @@
       kickImageThumbsForPreview();
     }
 
-    function isExpandedPreviewMode() {
-      const opt = WS.meta && WS.meta.options ? WS.meta.options : null;
-      return opt && opt.previewMode === "expanded";
-    }
-
-    function makeFolderCard(dirNode) {
-      const card = document.createElement("div");
-      card.className = "folderCard";
-      card.style.cursor = "pointer";
-      const icon = "📁";
-      const nm = displayName(dirNode.name || "folder") || "folder";
-      const sc = metaGetScore(dirNode.path || "");
-      const voteSeg = WS.view.showFolderScores ? `
-          <div class="voteBox">
-            <div class="voteBtn up">▲</div>
-            <div class="voteScore">${sc}</div>
-            <div class="voteBtn down">▼</div>
-          </div>
-          ` : ``;
-      card.innerHTML = `
-        <div class="left">
-          <div class="icon">${icon}</div>
-          <div class="name" title="${escapeHtml(nm)}">${escapeHtml(nm)}</div>
-        </div>
-        <div class="folderRight">
-          ${voteSeg}
-          <div class="meta">${dirItemCount(dirNode)} items</div>
-        </div>
-      `;
-      const up = card.querySelector(".voteBtn.up");
-      const down = card.querySelector(".voteBtn.down");
-      if (up) up.addEventListener("click", (e) => { e.stopPropagation(); metaBumpScore(dirNode.path || "", 1); });
-      if (down) down.addEventListener("click", (e) => { e.stopPropagation(); metaBumpScore(dirNode.path || "", -1); });
-
-      card.addEventListener("click", () => {
-        navigateToDirectory(dirNode);
-      });
-      return card;
-    }
-
-    function appendPreviewFolderContents(dirNode, container, animate) {
-      const folders = getChildDirsForNode(dirNode);
-      if (folders.length) {
-        const gridF = document.createElement("div");
-        gridF.className = "gridFolders";
-        const fragF = document.createDocumentFragment();
-
-        for (const d of folders) {
-          fragF.appendChild(makeFolderCard(d));
-        }
-
-        gridF.appendChild(fragF);
-        container.appendChild(gridF);
-      }
-
-      const ids = getOrderedFileIdsForDir(dirNode);
-
-      if (folders.length && ids.length) {
-        container.appendChild(makeSpacer());
-      }
-
-      if (!ids.length) {
-        if (!folders.length) {
-          const empty = document.createElement("div");
-          empty.className = "label";
-          empty.style.padding = "10px";
-          empty.textContent = "Empty folder.";
-          container.appendChild(empty);
-        }
-        return;
-      }
-
-      const grid = document.createElement("div");
-      grid.className = "gridFiles";
-
-      const frag = document.createDocumentFragment();
-
-      const LIMIT = 800;
-      let rendered = 0;
-
-      for (let i = 0; i < ids.length && rendered < LIMIT; i++) {
-        const id = ids[i];
-        const rec = WS.fileById.get(id);
-        if (!rec) continue;
-
-        const card = makePreviewFileCard(rec);
-        if (animate) card.classList.add("enter");
-        frag.appendChild(card);
-        rendered++;
-      }
-
-      grid.appendChild(frag);
-      container.appendChild(grid);
-    }
-
-    function renderExpandedFolderPreview(dirNode, animate, keepScroll, prevScroll) {
-      const folders = getChildDirsForNode(dirNode);
-      if (!folders.length) return false;
-
-      const entry = WS.nav.entries[WS.nav.selectedIndex] || null;
-      const selectedPath = entry && entry.kind === "dir" ? String(entry.node?.path || "") : "";
-
-      previewBodyEl.innerHTML = "";
-      const frag = document.createDocumentFragment();
-
-      for (const folder of folders) {
-        const section = document.createElement("div");
-        section.className = "previewExpandedSection";
-        section.dataset.path = folder.path || "";
-
-        const bar = document.createElement("div");
-        bar.className = "previewFolderBar" + (selectedPath && selectedPath === folder.path ? " selected" : "");
-        bar.title = folder.path ? displayPath(folder.path) : "folder";
-        bar.innerHTML = `<span class="name">${escapeHtml(displayName(folder.name || "folder") || "folder")}</span>`;
-        bar.addEventListener("click", () => {
-          navigateToDirectory(folder);
-        });
-
-        const content = document.createElement("div");
-        content.className = "previewExpandedContent";
-        appendPreviewFolderContents(folder, content, animate);
-
-        section.appendChild(bar);
-        section.appendChild(content);
-        frag.appendChild(section);
-      }
-
-      previewBodyEl.appendChild(frag);
-
-      if (animate) {
-        requestAnimationFrame(() => {
-          const cards = previewBodyEl.querySelectorAll(".fileCard.enter");
-          cards.forEach(c => c.classList.remove("enter"));
-        });
-      }
-
-      if (keepScroll) {
-        previewBodyEl.scrollTop = prevScroll;
-        return true;
-      }
-
-      if (selectedPath) {
-        const sections = previewBodyEl.querySelectorAll(".previewExpandedSection");
-        for (const section of sections) {
-          if (section.dataset.path === selectedPath) {
-            previewBodyEl.scrollTop = Math.max(0, section.offsetTop - 4);
-            return true;
-          }
-        }
-      }
-
-      previewBodyEl.scrollTop = 0;
-      return true;
-    }
-
     function renderPreviewPane(animate = false, keepScroll = false) {
       const prevScroll = keepScroll ? previewBodyEl.scrollTop : 0;
 
@@ -5904,7 +4780,7 @@
         renderBreadcrumbInline(null);
         updateModePill();
         itemsPill.textContent = "Items: —";
-        previewBodyEl.innerHTML = `<div class="label" style="padding:10px;">Load a folder or open a remote profile to begin.</div>`;
+        previewBodyEl.innerHTML = `<div class="label" style="padding:10px;">Load a folder to begin.</div>`;
         return;
       }
 
@@ -5947,11 +4823,81 @@
         return;
       }
 
-      if (isExpandedPreviewMode() && renderExpandedFolderPreview(dirNode, animate, keepScroll, prevScroll)) {
+      const folders = getChildDirsForNode(dirNode);
+
+      if (folders.length) {
+        const gridF = document.createElement("div");
+        gridF.className = "gridFolders";
+        const fragF = document.createDocumentFragment();
+
+        for (const d of folders) {
+          const card = document.createElement("div");
+          card.className = "folderCard";
+          card.style.cursor = "pointer";
+          const icon = "📁";
+          const nm = displayName(d.name || "folder") || "folder";
+          const sc = metaGetScore(d.path || "");
+          const voteSeg = WS.view.showFolderScores ? `
+              <div class="voteBox">
+                <div class="voteBtn up">▲</div>
+                <div class="voteScore">${sc}</div>
+                <div class="voteBtn down">▼</div>
+              </div>
+              ` : ``;
+          card.innerHTML = `
+            <div class="left">
+              <div class="icon">${icon}</div>
+              <div class="name" title="${escapeHtml(nm)}">${escapeHtml(nm)}</div>
+            </div>
+            <div class="folderRight">
+              ${voteSeg}
+              <div class="meta">${dirItemCount(d)} items</div>
+            </div>
+          `;
+          const up = card.querySelector(".voteBtn.up");
+          const down = card.querySelector(".voteBtn.down");
+          if (up) up.addEventListener("click", (e) => { e.stopPropagation(); metaBumpScore(d.path || "", 1); });
+          if (down) down.addEventListener("click", (e) => { e.stopPropagation(); metaBumpScore(d.path || "", -1); });
+
+          card.addEventListener("click", () => {
+            navigateToDirectory(d);
+          });
+          fragF.appendChild(card);
+        }
+
+        gridF.appendChild(fragF);
+        previewBodyEl.appendChild(gridF);
+        previewBodyEl.appendChild(makeSpacer());
+      }
+
+      const ids = getOrderedFileIdsForDir(dirNode);
+
+      if (!ids.length) {
+        if (!folders.length) previewBodyEl.innerHTML = `<div class="label" style="padding:10px;">Empty folder.</div>`;
         return;
       }
 
-      appendPreviewFolderContents(dirNode, previewBodyEl, animate);
+      const grid = document.createElement("div");
+      grid.className = "gridFiles";
+
+      const frag = document.createDocumentFragment();
+
+      const LIMIT = 800;
+      let rendered = 0;
+
+      for (let i = 0; i < ids.length && rendered < LIMIT; i++) {
+        const id = ids[i];
+        const rec = WS.fileById.get(id);
+        if (!rec) continue;
+
+        const card = makePreviewFileCard(rec);
+        if (animate) card.classList.add("enter");
+        frag.appendChild(card);
+        rendered++;
+      }
+
+      grid.appendChild(frag);
+      previewBodyEl.appendChild(grid);
 
       if (animate) {
         requestAnimationFrame(() => {
@@ -6083,7 +5029,6 @@
 
     function enqueueVideoThumb(rec) {
       if (!rec) return;
-      if (rec.isRemote) return;
       WS.videoThumbQueue.push(rec.id);
     }
 
@@ -6094,30 +5039,17 @@
       return ids.filter(id => passesFilter(WS.fileById.get(id)));
     }
 
-    function getPreviewDirsForThumbs() {
-      const dirNode = getPreviewTargetDir();
-      if (!dirNode) return [];
-      if (WS.preview.kind === "file") return [dirNode];
-      if (isExpandedPreviewMode()) {
-        const dirs = getChildDirsForNode(dirNode);
-        return dirs.length ? dirs : [dirNode];
-      }
-      return [dirNode];
-    }
-
     function kickVideoThumbsForPreview() {
-      const dirs = getPreviewDirsForThumbs();
-      if (!dirs.length) return;
+      const dirNode = getPreviewTargetDir();
+      if (!dirNode) return;
 
-      for (const dirNode of dirs) {
-        const ids = getPreviewFileIdsForDir(dirNode);
-        for (const id of ids) {
-          const rec = WS.fileById.get(id);
-          if (!rec || rec.type !== "video") continue;
-          const mode = WS.meta && WS.meta.options ? String(WS.meta.options.videoThumbSize || "medium") : "medium";
-          if (rec.videoThumbUrl && rec.videoThumbMode === mode) continue;
-          enqueueVideoThumb(rec);
-        }
+      const ids = getPreviewFileIdsForDir(dirNode);
+      for (const id of ids) {
+        const rec = WS.fileById.get(id);
+        if (!rec || rec.type !== "video") continue;
+        const mode = WS.meta && WS.meta.options ? String(WS.meta.options.videoThumbSize || "medium") : "medium";
+        if (rec.videoThumbUrl && rec.videoThumbMode === mode) continue;
+        enqueueVideoThumb(rec);
       }
       drainVideoThumbQueue();
     }
@@ -6141,7 +5073,6 @@
     }
 
     async function generateVideoThumb(rec) {
-      if (rec.isRemote) return;
       const url = ensureMediaUrl(rec);
       if (!url) return;
 
@@ -6198,7 +5129,6 @@
     function enqueueImageThumb(rec) {
       if (!rec) return;
       if (rec.type !== "image") return;
-      if (rec.isRemote) return;
       WS.imageThumbQueue.push(rec.id);
       drainImageThumbQueue();
     }
@@ -6224,7 +5154,6 @@
     }
 
     async function generateImageThumb(rec) {
-      if (rec.isRemote) return;
       const mode = WS.meta && WS.meta.options ? String(WS.meta.options.imageThumbSize || "medium") : "medium";
       if (mode === "high") {
         rec.thumbMode = "high";
@@ -6263,19 +5192,17 @@
     }
 
     function kickImageThumbsForPreview() {
-      const dirs = getPreviewDirsForThumbs();
-      if (!dirs.length) return;
+      const dirNode = getPreviewTargetDir();
+      if (!dirNode) return;
 
-      for (const dirNode of dirs) {
-        const ids = getPreviewFileIdsForDir(dirNode);
-        for (const id of ids) {
-          const rec = WS.fileById.get(id);
-          if (!rec || rec.type !== "image") continue;
-          const mode = WS.meta && WS.meta.options ? String(WS.meta.options.imageThumbSize || "medium") : "medium";
-          if (mode === "high") continue;
-          if (rec.thumbUrl && rec.thumbMode === mode) continue;
-          enqueueImageThumb(rec);
-        }
+      const ids = getPreviewFileIdsForDir(dirNode);
+      for (const id of ids) {
+        const rec = WS.fileById.get(id);
+        if (!rec || rec.type !== "image") continue;
+        const mode = WS.meta && WS.meta.options ? String(WS.meta.options.imageThumbSize || "medium") : "medium";
+        if (mode === "high") continue;
+        if (rec.thumbUrl && rec.thumbMode === mode) continue;
+        enqueueImageThumb(rec);
       }
     }
 
@@ -6876,7 +5803,9 @@
 
     function syncButtons() {
       const hasWS = !!WS.root && (!!WS.nav.dirNode || WS.view.favoritesMode);
-      if (favoritesBtn) favoritesBtn.disabled = !hasWS;
+
+      if (sortModeBtn) sortModeBtn.disabled = !hasWS;
+      if (toggleScoresBtn) toggleScoresBtn.disabled = !hasWS;
 
       if (directoriesSearchInput) {
         directoriesSearchInput.disabled = !hasWS;
@@ -7134,7 +6063,6 @@
 
     if (directoriesSearchClearBtn) directoriesSearchClearBtn.disabled = true;
     syncButtons();
-    siteDataLoad();
 
   </script>
 </body>
