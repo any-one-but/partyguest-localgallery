@@ -19,6 +19,50 @@
       --color1-tertiary: hsl(210, 15%, 5%);
 
       --anchor-internal-color2-primary: hsl(240, 100%, 40%);
+
+      --file-grid-min: 180px;
+      --file-meta-font: 12px;
+      --file-meta-padding: 8px 10px;
+
+      --folder-grid-min: 260px;
+      --folder-card-padding: 14px;
+      --folder-card-gap: 12px;
+      --folder-icon-size: 18px;
+      --folder-icon-width: 22px;
+      --folder-name-font: 13px;
+      --folder-meta-font: 11px;
+    }
+
+    :root[data-media-size="small"] {
+      --file-grid-min: 150px;
+      --file-meta-font: 11px;
+      --file-meta-padding: 6px 8px;
+    }
+
+    :root[data-media-size="large"] {
+      --file-grid-min: 220px;
+      --file-meta-font: 13px;
+      --file-meta-padding: 10px 12px;
+    }
+
+    :root[data-folder-size="small"] {
+      --folder-grid-min: 220px;
+      --folder-card-padding: 10px;
+      --folder-card-gap: 8px;
+      --folder-icon-size: 16px;
+      --folder-icon-width: 18px;
+      --folder-name-font: 12px;
+      --folder-meta-font: 10px;
+    }
+
+    :root[data-folder-size="large"] {
+      --folder-grid-min: 320px;
+      --folder-card-padding: 18px;
+      --folder-card-gap: 14px;
+      --folder-icon-size: 20px;
+      --folder-icon-width: 26px;
+      --folder-name-font: 14px;
+      --folder-meta-font: 12px;
     }
 
     :root[data-theme="light"] {
@@ -666,13 +710,13 @@
 
     .gridFolders {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(var(--folder-grid-min), 1fr));
       gap: 10px;
     }
 
     .gridFiles {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(var(--file-grid-min), 1fr));
       gap: 10px;
     }
 
@@ -680,8 +724,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      padding: 14px 14px;
+      gap: var(--folder-card-gap);
+      padding: var(--folder-card-padding);
       border: 1px solid var(--color1-tertiary);
       border-radius: 4px;
       background: var(--color1-primary);
@@ -698,14 +742,14 @@
     }
 
     .folderCard .icon {
-      width: 22px;
+      width: var(--folder-icon-width);
       text-align: center;
-      flex: 0 0 22px;
-      font-size: 18px;
+      flex: 0 0 var(--folder-icon-width);
+      font-size: var(--folder-icon-size);
     }
 
     .folderCard .name {
-      font-size: 13px; /* slightly smaller */
+      font-size: var(--folder-name-font); /* slightly smaller */
       font-weight: 800;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -715,7 +759,7 @@
 
     .folderCard .meta {
       color: var(--color0-secondary);
-      font-size: 11px;
+      font-size: var(--folder-meta-font);
       flex: 0 0 auto;
       white-space: nowrap;
     }
@@ -748,8 +792,8 @@
     }
 
     .metaBlock {
-      padding: 8px 10px;
-      font-size: 12px;
+      padding: var(--file-meta-padding);
+      font-size: var(--file-meta-font);
       line-height: 1.35;
       display: flex;
       flex-direction: column;
@@ -1651,11 +1695,13 @@
         videoGallery: "muted",
         imageThumbSize: "medium",
         videoThumbSize: "medium",
-        showFileExtensions: true,
+        mediaThumbUiSize: "medium",
+        folderPreviewSize: "medium",
+        hideFileExtensions: false,
         defaultFilterMode: "all",
         defaultRandomMode: false,
         defaultFolderBehavior: "slide",
-        showFolderScores: false,
+        folderScoreDisplay: "hidden",
         tagFilterMode: "or",
         previewMode: "grid",
         videoSkipStep: "10",
@@ -1677,11 +1723,13 @@
         videoGallery: (src.videoGallery === "unmuted" || src.videoGallery === "muted" || src.videoGallery === "off") ? src.videoGallery : d.videoGallery,
         imageThumbSize: (src.imageThumbSize === "tiny" || src.imageThumbSize === "small" || src.imageThumbSize === "medium" || src.imageThumbSize === "high") ? src.imageThumbSize : d.imageThumbSize,
         videoThumbSize: (src.videoThumbSize === "tiny" || src.videoThumbSize === "small" || src.videoThumbSize === "medium" || src.videoThumbSize === "high") ? src.videoThumbSize : d.videoThumbSize,
-        showFileExtensions: (typeof src.showFileExtensions === "boolean") ? src.showFileExtensions : d.showFileExtensions,
+        mediaThumbUiSize: (src.mediaThumbUiSize === "small" || src.mediaThumbUiSize === "medium" || src.mediaThumbUiSize === "large") ? src.mediaThumbUiSize : d.mediaThumbUiSize,
+        folderPreviewSize: (src.folderPreviewSize === "small" || src.folderPreviewSize === "medium" || src.folderPreviewSize === "large") ? src.folderPreviewSize : d.folderPreviewSize,
+        hideFileExtensions: (typeof src.hideFileExtensions === "boolean") ? src.hideFileExtensions : ((typeof src.showFileExtensions === "boolean") ? !src.showFileExtensions : d.hideFileExtensions),
         defaultFilterMode: (src.defaultFilterMode === "all" || src.defaultFilterMode === "images" || src.defaultFilterMode === "videos" || src.defaultFilterMode === "gifs") ? src.defaultFilterMode : d.defaultFilterMode,
         defaultRandomMode: (typeof src.defaultRandomMode === "boolean") ? src.defaultRandomMode : d.defaultRandomMode,
         defaultFolderBehavior: (src.defaultFolderBehavior === "stop" || src.defaultFolderBehavior === "loop" || src.defaultFolderBehavior === "slide") ? src.defaultFolderBehavior : d.defaultFolderBehavior,
-        showFolderScores: (typeof src.showFolderScores === "boolean") ? src.showFolderScores : ((typeof src.defaultShowScores === "boolean") ? src.defaultShowScores : d.showFolderScores),
+        folderScoreDisplay: (src.folderScoreDisplay === "show" || src.folderScoreDisplay === "no-arrows" || src.folderScoreDisplay === "hidden") ? src.folderScoreDisplay : ((typeof src.showFolderScores === "boolean") ? (src.showFolderScores ? "show" : "hidden") : d.folderScoreDisplay),
         tagFilterMode: (src.tagFilterMode === "and" || src.tagFilterMode === "or") ? src.tagFilterMode : d.tagFilterMode,
         previewMode: (src.previewMode === "grid" || src.previewMode === "expanded") ? src.previewMode : d.previewMode,
         videoSkipStep: (src.videoSkipStep === "3" || src.videoSkipStep === "5" || src.videoSkipStep === "10" || src.videoSkipStep === "30") ? src.videoSkipStep : d.videoSkipStep,
@@ -1699,7 +1747,7 @@
     function fileDisplayName(name) {
       const base = displayName(name || "") || "";
       const opt = WS.meta && WS.meta.options ? WS.meta.options : null;
-      if (!opt || opt.showFileExtensions) return base;
+      if (!opt || !opt.hideFileExtensions) return base;
       const i = base.lastIndexOf(".");
       if (i <= 0) return base;
       return base.slice(0, i);
@@ -1709,7 +1757,7 @@
       const parts = String(relPath || "").split("/").filter(Boolean);
       if (!parts.length) return "";
       const opt = WS.meta && WS.meta.options ? WS.meta.options : null;
-      if (!opt || opt.showFileExtensions) return displayRelPath(relPath);
+      if (!opt || !opt.hideFileExtensions) return displayRelPath(relPath);
       const out = parts.map((seg, idx) => {
         const nm = displayName(seg || "") || "";
         if (idx !== parts.length - 1) return nm;
@@ -1718,6 +1766,12 @@
         return nm.slice(0, i);
       });
       return out.join("/") || "";
+    }
+
+    function folderScoreDisplayMode() {
+      const mode = WS.view && typeof WS.view.folderScoreDisplay === "string" ? WS.view.folderScoreDisplay : "hidden";
+      if (mode === "show" || mode === "no-arrows" || mode === "hidden") return mode;
+      return "hidden";
     }
 
     function imageThumbWidthForOption() {
@@ -1749,7 +1803,7 @@
       WS.view.filterMode = String(opt.defaultFilterMode || "all");
       WS.view.randomMode = !!opt.defaultRandomMode;
       WS.view.folderBehavior = String(opt.defaultFolderBehavior || "slide");
-      WS.view.showFolderScores = !!opt.showFolderScores;
+      WS.view.folderScoreDisplay = (opt.folderScoreDisplay === "show" || opt.folderScoreDisplay === "no-arrows" || opt.folderScoreDisplay === "hidden") ? opt.folderScoreDisplay : "hidden";
       WS.view.tagFilterMode = (opt.tagFilterMode === "and") ? "and" : "or";
       applyColorSchemeFromOptions();
     }
@@ -1763,9 +1817,22 @@
       else root.setAttribute("data-theme", scheme);
     }
 
+    function applyDisplaySizesFromOptions() {
+      const opt = WS.meta && WS.meta.options ? WS.meta.options : null;
+      const root = document.documentElement;
+      if (!root) return;
+      const mediaSize = opt ? String(opt.mediaThumbUiSize || "medium") : "medium";
+      const folderSize = opt ? String(opt.folderPreviewSize || "medium") : "medium";
+      if (mediaSize === "medium") root.removeAttribute("data-media-size");
+      else root.setAttribute("data-media-size", mediaSize);
+      if (folderSize === "medium") root.removeAttribute("data-folder-size");
+      else root.setAttribute("data-folder-size", folderSize);
+    }
+
     function applyOptionsEverywhere(invalidateThumbs = false) {
       if (!WS.root) {
         applyColorSchemeFromOptions();
+        applyDisplaySizesFromOptions();
         syncButtons();
         return;
       }
@@ -1775,6 +1842,7 @@
       }
 
       applyColorSchemeFromOptions();
+      applyDisplaySizesFromOptions();
       rebuildDirectoriesEntries();
       WS.nav.selectedIndex = findNearestSelectableIndex(WS.nav.selectedIndex, 1);
       syncPreviewToSelection();
@@ -1815,7 +1883,7 @@
         randomMode: false,
         loopWithinDir: false,
         folderBehavior: "slide",
-        showFolderScores: false,
+        folderScoreDisplay: "hidden",
         randomSeed: 0,
         randomCache: new Map(),
         dirLoopRepeats: 3,
@@ -2253,7 +2321,7 @@
       <h2>Scoring (folder scoring)</h2>
       <ul>
         <li>Scoring visibility is controlled from <code>Preferences</code> in the Options menu.</li>
-        <li>When enabled, folders show ▲/▼ buttons to bump their score.</li>
+        <li>Folder scores can show arrows, show score only, or hide everything.</li>
       </ul>
 
       <h2>Tags (single-folder)</h2>
@@ -2422,6 +2490,18 @@
         { value: "expanded", label: "Expanded" }
       ];
 
+      const previewSizeModes = [
+        { value: "small", label: "Small" },
+        { value: "medium", label: "Medium" },
+        { value: "large", label: "Large" }
+      ];
+
+      const folderScoreModes = [
+        { value: "show", label: "Show score + arrows" },
+        { value: "no-arrows", label: "Hide arrows (score only)" },
+        { value: "hidden", label: "Hide score + arrows" }
+      ];
+
       const colorSchemes = [
         { value: "classic", label: "Classic Dark" },
         { value: "light", label: "Light" },
@@ -2447,7 +2527,7 @@
 
         <h2>Directories</h2>
         ${makeSelectRow("Directory sort", "Sort folders by name or score.", "opt_dirSortMode", WS.meta.dirSortMode === "score" ? "score" : "name", dirSortModes)}
-        ${makeSelectRow("Folder scores", "Show folder score controls in folder lists + previews.", "opt_showFolderScores", WS.view.showFolderScores ? "on" : "off", onOffModes)}
+        ${makeSelectRow("Folder scores", "Choose how folder scores appear in lists + previews.", "opt_folderScoreDisplay", String(opt.folderScoreDisplay || "hidden"), folderScoreModes)}
         ${makeSelectRow("Tag filter mode", "When multiple tags are active, match any or all tags.", "opt_tagFilterMode", String(opt.tagFilterMode || "or"), tagFilterModes)}
 
         <h2>Playback</h2>
@@ -2459,11 +2539,13 @@
         <h2>Thumbnails</h2>
         ${makeSelectRow("Image thumbnail size", "Controls generated image thumbnail quality (smaller is faster).", "opt_imageThumbSize", String(opt.imageThumbSize || "medium"), thumbModes)}
         ${makeSelectRow("Video thumbnail size", "Controls generated video thumbnail quality (smaller is faster).", "opt_videoThumbSize", String(opt.videoThumbSize || "medium"), thumbModes)}
+        ${makeSelectRow("Media thumbnail scale", "Controls how large media cards appear in the preview pane.", "opt_mediaThumbUiSize", String(opt.mediaThumbUiSize || "medium"), previewSizeModes)}
+        ${makeSelectRow("Folder preview scale", "Controls how large folder cards appear in the preview pane.", "opt_folderPreviewSize", String(opt.folderPreviewSize || "medium"), previewSizeModes)}
 
         <h2>Display</h2>
         ${makeSelectRow("Color scheme", "Switch the overall interface palette.", "opt_colorScheme", String(opt.colorScheme || "classic"), colorSchemes)}
         ${makeSelectRow("Preview mode", "Controls how folders are shown in the preview pane.", "opt_previewMode", String(opt.previewMode || "grid"), previewModes)}
-        ${makeCheckRow("Show file extensions", "Show .jpg / .mp4 in file names.", "opt_showFileExtensions", !!opt.showFileExtensions)}
+        ${makeCheckRow("Hide file extensions", "Hide .jpg / .mp4 in file names.", "opt_hideFileExtensions", !!opt.hideFileExtensions)}
         ${makeCheckRow("Hide indices from display names", "Hide numeric prefixes like '01 - '.", "opt_hideIndicesInNames", !!opt.hideIndicesInNames)}
         ${makeCheckRow("Hide underscores from display names", "Replace underscores with spaces.", "opt_hideUnderscoresInNames", !!opt.hideUnderscoresInNames)}
         ${makeCheckRow("Force title caps in display names", "Apply Title Case to display names.", "opt_forceTitleCaps", !!opt.forceTitleCaps)}
@@ -2514,12 +2596,12 @@
       bindSelect("opt_defaultFolderBehavior", "defaultFolderBehavior", false, () => {
         applyDefaultViewFromOptions();
       });
-      bindSelect("opt_showFolderScores", "showFolderScores", false, (val) => {
-        WS.view.showFolderScores = (val === "on");
+      bindSelect("opt_folderScoreDisplay", "folderScoreDisplay", false, (val) => {
+        WS.view.folderScoreDisplay = (val === "show" || val === "no-arrows" || val === "hidden") ? val : "hidden";
         renderDirectoriesPane(true);
         renderPreviewPane(false, true);
         syncButtons();
-      }, (val) => val === "on");
+      });
       bindSelect("opt_tagFilterMode", "tagFilterMode", false, (val) => {
         WS.view.tagFilterMode = (val === "and") ? "and" : "or";
         rebuildDirectoriesEntries();
@@ -2537,13 +2619,15 @@
       bindSelect("opt_slideshowDefault", "slideshowDefault", false);
       bindSelect("opt_imageThumbSize", "imageThumbSize", true);
       bindSelect("opt_videoThumbSize", "videoThumbSize", true);
+      bindSelect("opt_mediaThumbUiSize", "mediaThumbUiSize", false);
+      bindSelect("opt_folderPreviewSize", "folderPreviewSize", false);
       bindSelect("opt_colorScheme", "colorScheme", false, () => {
         applyColorSchemeFromOptions();
       });
       bindSelect("opt_previewMode", "previewMode", false, () => {
         renderPreviewPane(true);
       });
-      bindCheck("opt_showFileExtensions", "showFileExtensions");
+      bindCheck("opt_hideFileExtensions", "hideFileExtensions");
       bindCheck("opt_hideIndicesInNames", "hideIndicesInNames");
       bindCheck("opt_hideUnderscoresInNames", "hideUnderscoresInNames");
       bindCheck("opt_forceTitleCaps", "forceTitleCaps");
@@ -4692,12 +4776,14 @@
           name = displayName(entry.node?.name || "folder") || "folder";
           meta = `${dirItemCount(entry.node)} items`;
           const sc = metaGetScore(p);
-          if (WS.view.showFolderScores) {
+          const scoreMode = folderScoreDisplayMode();
+          if (scoreMode !== "hidden") {
+            const arrows = scoreMode === "show";
             voteHtml = `
           <div class="voteBox" data-path="${escapeHtml(p)}">
-            <div class="voteBtn up">▲</div>
+            ${arrows ? `<div class="voteBtn up">▲</div>` : ""}
             <div class="voteScore">${sc}</div>
-            <div class="voteBtn down">▼</div>
+            ${arrows ? `<div class="voteBtn down">▼</div>` : ""}
           </div>
           `;
           }
@@ -5756,11 +5842,12 @@
       const icon = "📁";
       const nm = displayName(dirNode?.name || "folder") || "folder";
       const sc = metaGetScore(dirNode?.path || "");
-      const voteSeg = WS.view.showFolderScores ? `
+      const scoreMode = folderScoreDisplayMode();
+      const voteSeg = scoreMode !== "hidden" ? `
           <div class="voteBox">
-            <div class="voteBtn up">▲</div>
+            ${scoreMode === "show" ? `<div class="voteBtn up">▲</div>` : ""}
             <div class="voteScore">${sc}</div>
-            <div class="voteBtn down">▼</div>
+            ${scoreMode === "show" ? `<div class="voteBtn down">▼</div>` : ""}
           </div>
           ` : ``;
       card.innerHTML = `
