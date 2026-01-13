@@ -377,6 +377,18 @@
       color: var(--color0-primary);
       border: 1px solid var(--color1-tertiary);
     }
+
+    .miniBtn.navBtn {
+      width: 26px;
+      min-width: 26px;
+      padding: 0;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      line-height: 1;
+    }
     .miniBtn:hover { background: var(--color1-secondary-transparent); }
     .miniBtn:active { transform: translateY(1px); }
     .miniBtn.active {
