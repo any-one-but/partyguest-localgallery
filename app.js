@@ -451,6 +451,7 @@
     // Title Pane
     const helpBtn = $("helpBtn");
     const optionsBtn = $("optionsBtn");
+    const refreshBtn = $("refreshBtn");
     const openWritableBtn = $("openWritableBtn");
 
     // Help Overlay
@@ -2053,6 +2054,111 @@
       kickImageThumbsForPreview();
       syncMetaButtons();
     }
+
+    function snapshotRefreshState() {
+      const entry = WS.nav.entries[WS.nav.selectedIndex] || null;
+      let entryKey = null;
+      if (entry && entry.kind === "dir") {
+        entryKey = { kind: "dir", path: String(entry.node?.path || "") };
+      } else if (entry && entry.kind === "file") {
+        const rec = WS.fileById.get(entry.id);
+        entryKey = { kind: "file", relPath: String(rec?.relPath || "") };
+      }
+
+      return {
+        dirPath: String(WS.nav.dirNode?.path || ""),
+        entryKey,
+        view: {
+          filterMode: WS.view.filterMode,
+          randomMode: WS.view.randomMode,
+          loopWithinDir: WS.view.loopWithinDir,
+          folderBehavior: WS.view.folderBehavior,
+          folderScoreDisplay: WS.view.folderScoreDisplay,
+          tagFilterMode: WS.view.tagFilterMode,
+          tagIncludeFilters: new Set(WS.view.tagIncludeFilters),
+          tagExcludeFilters: new Set(WS.view.tagExcludeFilters),
+          favoritesMode: WS.view.favoritesMode,
+          hiddenMode: WS.view.hiddenMode,
+          dirSearchPinned: WS.view.dirSearchPinned,
+          dirSearchQuery: WS.view.dirSearchQuery,
+          searchRootActive: WS.view.searchRootActive,
+          searchRootPath: WS.view.searchRootPath,
+          searchAnchorPath: WS.view.searchAnchorPath,
+          searchRootIsFavorites: WS.view.searchRootIsFavorites,
+          searchRootIsHidden: WS.view.searchRootIsHidden
+        }
+      };
+    }
+
+    function restoreRefreshViewState(viewState) {
+      if (!viewState) return;
+      WS.view.filterMode = viewState.filterMode;
+      WS.view.randomMode = viewState.randomMode;
+      WS.view.loopWithinDir = viewState.loopWithinDir;
+      WS.view.folderBehavior = viewState.folderBehavior;
+      WS.view.folderScoreDisplay = viewState.folderScoreDisplay;
+      WS.view.tagFilterMode = viewState.tagFilterMode;
+      WS.view.tagIncludeFilters = new Set(viewState.tagIncludeFilters || []);
+      WS.view.tagExcludeFilters = new Set(viewState.tagExcludeFilters || []);
+      WS.view.favoritesMode = !!viewState.favoritesMode;
+      WS.view.hiddenMode = !!viewState.hiddenMode;
+      WS.view.dirSearchPinned = !!viewState.dirSearchPinned;
+      WS.view.dirSearchQuery = String(viewState.dirSearchQuery || "");
+      WS.view.searchRootActive = !!viewState.searchRootActive;
+      WS.view.searchRootPath = String(viewState.searchRootPath || "");
+      WS.view.searchAnchorPath = String(viewState.searchAnchorPath || "");
+      WS.view.searchRootIsFavorites = !!viewState.searchRootIsFavorites;
+      WS.view.searchRootIsHidden = !!viewState.searchRootIsHidden;
+      WS.view.searchRootFavorites = WS.view.searchRootIsFavorites ? getAllFavoriteDirs() : [];
+      WS.view.searchRootHidden = WS.view.searchRootIsHidden ? getAllHiddenDirs() : [];
+    }
+
+    function restoreRefreshSelection(entryKey) {
+      if (!entryKey) return 0;
+      for (let i = 0; i < WS.nav.entries.length; i++) {
+        const entry = WS.nav.entries[i];
+        if (!entry) continue;
+        if (entryKey.kind === "dir" && entry.kind === "dir") {
+          if (String(entry.node?.path || "") === String(entryKey.path || "")) return i;
+        } else if (entryKey.kind === "file" && entry.kind === "file") {
+          const rec = WS.fileById.get(entry.id);
+          if (String(rec?.relPath || "") === String(entryKey.relPath || "")) return i;
+        }
+      }
+      return 0;
+    }
+
+    async function refreshWorkspaceFromRootHandle() {
+      const rootHandle = WS.meta.fsRootHandle;
+      if (!rootHandle) return;
+      const state = snapshotRefreshState();
+
+      await buildWorkspaceFromDirectoryHandle(rootHandle);
+
+      restoreRefreshViewState(state?.view);
+      const targetDir = WS.dirByPath.get(state?.dirPath || "") || WS.root;
+      if (targetDir) WS.nav.dirNode = targetDir;
+
+      if (WS.view.dirSearchPinned || String(WS.view.dirSearchQuery || "").trim()) {
+        computeDirectorySearchResults();
+      }
+
+      rebuildDirectoriesEntries();
+      const idx = restoreRefreshSelection(state?.entryKey);
+      WS.nav.selectedIndex = findNearestSelectableIndex(idx, 1);
+      syncPreviewToSelection();
+      renderDirectoriesPane(true);
+      renderPreviewPane(true, true);
+      syncButtons();
+      kickVideoThumbsForPreview();
+      kickImageThumbsForPreview();
+    }
+
+    if (refreshBtn) refreshBtn.addEventListener("click", async () => {
+      try {
+        await refreshWorkspaceFromRootHandle();
+      } catch {}
+    });
 
     openWritableBtn.addEventListener("click", async () => {
       if (!window.showDirectoryPicker) return;
@@ -5313,6 +5419,7 @@
       const hasWS = !!WS.root && (!!WS.nav.dirNode || WS.view.favoritesMode || WS.view.hiddenMode);
       if (favoritesBtn) favoritesBtn.disabled = !hasWS;
       if (hiddenBtn) hiddenBtn.disabled = !hasWS;
+      if (refreshBtn) refreshBtn.disabled = !WS.meta.fsRootHandle;
 
       if (directoriesSearchInput) {
         directoriesSearchInput.disabled = !hasWS;
