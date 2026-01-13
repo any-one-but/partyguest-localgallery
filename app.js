@@ -90,6 +90,7 @@
         defaultFolderBehavior: "slide",
         folderScoreDisplay: "hidden",
         tagFilterMode: "or",
+        tagChipCycle: "tri",
         previewMode: "grid",
         videoSkipStep: "10",
         preloadNextMode: "off",
@@ -118,6 +119,7 @@
         defaultFolderBehavior: (src.defaultFolderBehavior === "stop" || src.defaultFolderBehavior === "loop" || src.defaultFolderBehavior === "slide") ? src.defaultFolderBehavior : d.defaultFolderBehavior,
         folderScoreDisplay: (src.folderScoreDisplay === "show" || src.folderScoreDisplay === "no-arrows" || src.folderScoreDisplay === "hidden") ? src.folderScoreDisplay : ((typeof src.showFolderScores === "boolean") ? (src.showFolderScores ? "show" : "hidden") : d.folderScoreDisplay),
         tagFilterMode: (src.tagFilterMode === "and" || src.tagFilterMode === "or") ? src.tagFilterMode : d.tagFilterMode,
+        tagChipCycle: (src.tagChipCycle === "bi" || src.tagChipCycle === "tri") ? src.tagChipCycle : d.tagChipCycle,
         previewMode: (src.previewMode === "grid" || src.previewMode === "expanded") ? src.previewMode : d.previewMode,
         videoSkipStep: (src.videoSkipStep === "3" || src.videoSkipStep === "5" || src.videoSkipStep === "10" || src.videoSkipStep === "30") ? src.videoSkipStep : d.videoSkipStep,
         preloadNextMode: (src.preloadNextMode === "off" || src.preloadNextMode === "on" || src.preloadNextMode === "ultra") ? src.preloadNextMode : d.preloadNextMode,
@@ -292,6 +294,8 @@
         bulkTagSelectedPaths: new Set(),
         bulkTagPickSet: new Set(),
         bulkTagSelectionsByDir: new Map(),
+        bulkFileSelectedIds: new Set(),
+        bulkFileSelectionsByDir: new Map(),
         bulkActionMenuOpen: false,
         dirActionMenuPath: "",
         dirSearchPinned: false,
@@ -397,6 +401,8 @@
       WS.view.bulkTagSelectedPaths = new Set();
       WS.view.bulkTagPickSet.clear();
       WS.view.bulkTagSelectionsByDir = new Map();
+      WS.view.bulkFileSelectedIds = new Set();
+      WS.view.bulkFileSelectionsByDir = new Map();
       WS.view.bulkActionMenuOpen = false;
       WS.view.dirActionMenuPath = "";
       WS.view.dirSearchPinned = false;
@@ -477,6 +483,7 @@
     const directoriesTagsRowEl = $("directoriesTagsRow");
     const directoriesActionRowEl = $("directoriesActionRow");
     const directoriesSelectBtn = $("directoriesSelectBtn");
+    const directoriesSelectAllBtn = $("directoriesSelectAllBtn");
     const directoriesMenuBtn = $("directoriesMenuBtn");
     const directoriesActionMenuEl = $("directoriesActionMenu");
     const directoriesClearBtn = $("directoriesClearBtn");
@@ -667,12 +674,12 @@
         <li>Move selection: <code>↑/↓</code>, <code>W/S</code>, or <code>I/K</code>.</li>
         <li>Enter/leave folders: <code>→</code>/<code>Enter</code>/<code>D</code>/<code>L</code> to go in, <code>←</code>/<code>Backspace</code>/<code>A</code>/<code>J</code> to go out.</li>
         <li>Open Gallery Mode: <code>G</code>. Close preview/gallery: <code>Esc</code> (or <code>G</code> in Gallery Mode).</li>
-        <li>Fast jumps: <code>1/6</code> -50, <code>7</code> -10, <code>2/8</code> previous folder’s first file, <code>4/9</code> +10, <code>5/0</code> +50.</li>
+        <li>Fast jumps: <code>1/6</code> -50, <code>2/7</code> -10, <code>3/8</code> previous folder’s first file, <code>4/9</code> +10, <code>5/0</code> +50.</li>
         <li>Video controls: <code>Space</code> play/pause, <code>Q/E</code> seek back/forward, mirrored by <code>U/O</code>.</li>
         <li>Filters & behaviors: <code>F/H</code> cycle media filter, <code>R/Y</code> toggle random order, <code>C/N</code> cycle folder behavior.</li>
         <li>Slideshow: <code>Shift</code> toggles the slideshow speed set in Options.</li>
         <li>Jump to next folder’s first file: <code>X</code> or <code>M</code>.</li>
-        <li>Jump to previous folder’s first file: <code>2</code> or <code>8</code>.</li>
+        <li>Jump to previous folder’s first file: <code>3</code> or <code>8</code>.</li>
       </ul>
 
       <h2>Other hotkeys & controls</h2>
@@ -702,7 +709,7 @@
 
       <h2>Searching</h2>
       <ul>
-        <li>Use the search bar to filter the current view by name (folders and files).</li>
+        <li>Use the search bar to filter the current view by name (folders only).</li>
         <li>Search stays active until you click <code>X</code> in the search bar.</li>
       </ul>
 
@@ -839,6 +846,11 @@
         { value: "and", label: "AND (match all)" }
       ];
 
+      const tagChipCycleModes = [
+        { value: "tri", label: "Inactive → Active → Hide" },
+        { value: "bi", label: "Inactive → Active" }
+      ];
+
       const skipSteps = [
         { value: "3", label: "3 seconds" },
         { value: "5", label: "5 seconds" },
@@ -917,6 +929,7 @@
         ${makeSelectRow("Directory sort", "Sort folders by name or score.", "opt_dirSortMode", WS.meta.dirSortMode === "score" ? "score" : "name", dirSortModes)}
         ${makeSelectRow("Folder scores", "Choose how folder scores appear in lists + previews.", "opt_folderScoreDisplay", String(opt.folderScoreDisplay || "hidden"), folderScoreModes)}
         ${makeSelectRow("Tag filter mode", "When multiple tags are active, match any or all tags.", "opt_tagFilterMode", String(opt.tagFilterMode || "or"), tagFilterModes)}
+        ${makeSelectRow("Tag button cycle", "Choose whether tags can be set to hide or only active/inactive.", "opt_tagChipCycle", String(opt.tagChipCycle || "tri"), tagChipCycleModes)}
 
         <h2>Playback</h2>
         ${makeSelectRow("Video skip step", "Seek increment for Q/E/U/O shortcuts.", "opt_videoSkipStep", String(opt.videoSkipStep || "10"), skipSteps)}
@@ -999,6 +1012,9 @@
         renderPreviewPane(false, true);
         syncButtons();
       });
+      bindSelect("opt_tagChipCycle", "tagChipCycle", false, () => {
+        renderDirectoriesPane(true);
+      });
       bindSelect("opt_videoSkipStep", "videoSkipStep", false);
       bindSelect("opt_preloadNextMode", "preloadNextMode", false, (val) => {
         if (val === "off") PRELOAD_CACHE = new Map();
@@ -1060,6 +1076,14 @@
       WS.view.bulkTagPickSet.clear();
     }
 
+    function getBulkSelectionKey() {
+      if (WS.view.dirSearchPinned && WS.view.searchRootActive) return "search";
+      if (WS.view.favoritesMode && WS.view.favoritesRootActive) return "favorites";
+      if (WS.view.hiddenMode && WS.view.hiddenRootActive) return "hidden";
+      const dn = WS.nav.dirNode;
+      return dn ? String(dn.path || "") : "";
+    }
+
     function openBulkTagPanel() {
       WS.view.bulkTagPanelOpen = true;
       WS.view.bulkTagPickSet.clear();
@@ -1077,14 +1101,17 @@
       closeBulkTagPanel();
       closeActionMenus();
       if (WS.view.bulkTagSelectedPaths && WS.view.bulkTagSelectedPaths.clear) WS.view.bulkTagSelectedPaths.clear();
+      if (WS.view.bulkFileSelectedIds && WS.view.bulkFileSelectedIds.clear) WS.view.bulkFileSelectedIds.clear();
     }
 
     function syncBulkSelectionForCurrentDir() {
-      const dn = WS.nav.dirNode;
-      const p = dn ? String(dn.path || "") : "";
+      const p = getBulkSelectionKey();
       if (!WS.view.bulkTagSelectionsByDir) WS.view.bulkTagSelectionsByDir = new Map();
       if (!WS.view.bulkTagSelectionsByDir.has(p)) WS.view.bulkTagSelectionsByDir.set(p, new Set());
       WS.view.bulkTagSelectedPaths = WS.view.bulkTagSelectionsByDir.get(p);
+      if (!WS.view.bulkFileSelectionsByDir) WS.view.bulkFileSelectionsByDir = new Map();
+      if (!WS.view.bulkFileSelectionsByDir.has(p)) WS.view.bulkFileSelectionsByDir.set(p, new Set());
+      WS.view.bulkFileSelectedIds = WS.view.bulkFileSelectionsByDir.get(p);
     }
 
     function applyVideoCarryToElement(vid, fileId) {
@@ -1225,6 +1252,28 @@
       const p = String(path || "");
       const cur = metaGetScore(p);
       metaSetScore(p, (cur + (delta | 0)) | 0);
+    }
+
+    function metaBumpScoreBulk(paths, delta) {
+      const list = Array.isArray(paths) ? paths : Array.from(paths || []);
+      if (!list.length) return;
+      const d = delta | 0;
+      for (let i = 0; i < list.length; i++) {
+        const p = String(list[i] || "");
+        if (!p) continue;
+        const cur = metaGetScore(p);
+        WS.meta.dirScores.set(p, (cur + d) | 0);
+      }
+      WS.meta.dirty = true;
+      metaScheduleSave();
+      syncMetaButtons();
+      if (WS.meta.dirSortMode === "score") {
+        applyViewModesEverywhere(true);
+        return;
+      }
+      renderDirectoriesPane(true);
+      renderPreviewPane(false, true);
+      syncButtons();
     }
 
     function normalizeTag(t) {
@@ -2483,6 +2532,11 @@
       const addSet = new Set();
       const results = [];
       const skipHidden = !WS.view.hiddenMode;
+      const searchTagFilters = (WS.view.tagExcludeFilters.size) ? {
+        include: new Set(),
+        exclude: new Set(WS.view.tagExcludeFilters),
+        mode: WS.view.tagFilterMode === "and" ? "and" : "or"
+      } : null;
 
       const consider = (node, includeSelf) => {
         if (!node) return;
@@ -2492,7 +2546,12 @@
         const name = displayName(node.name || "").toLowerCase();
         if (includeSelf && name.includes(q)) {
           const p = String(node.path || "");
-          if (p && !addSet.has(p)) { addSet.add(p); results.push(node); }
+          if (searchTagFilters && !dirMatchesTagFilters(node, searchTagFilters)) {
+            // Respect tag filtering in search results.
+          } else if (p && !addSet.has(p)) {
+            addSet.add(p);
+            results.push(node);
+          }
         }
 
         for (const d of node.childrenDirs) consider(d, true);
@@ -2507,7 +2566,7 @@
       } else {
         const rp = String(WS.view.searchRootPath || "");
         const rootNode = WS.dirByPath.get(rp) || WS.root;
-        for (const d of rootNode.childrenDirs) consider(d, true);
+        consider(rootNode, false);
       }
 
       results.sort((a, b) => {
@@ -2951,18 +3010,44 @@
     }
 
     function canUseBulkSelection() {
-      if (!WS.root || !WS.nav.dirNode) return false;
-      if (WS.view.dirSearchPinned && WS.view.searchRootActive) return false;
-      if (WS.view.favoritesMode && WS.view.favoritesRootActive) return false;
-      if (WS.view.hiddenMode && WS.view.hiddenRootActive) return false;
-      return true;
+      if (!WS.root) return false;
+      if (WS.nav.dirNode) return true;
+      if (WS.view.dirSearchPinned && WS.view.searchRootActive) return true;
+      if (WS.view.favoritesMode && WS.view.favoritesRootActive) return true;
+      if (WS.view.hiddenMode && WS.view.hiddenRootActive) return true;
+      return false;
+    }
+
+    function getVisibleDirPathsInEntries() {
+      const set = new Set();
+      for (let i = 0; i < WS.nav.entries.length; i++) {
+        const entry = WS.nav.entries[i];
+        if (!entry || entry.kind !== "dir") continue;
+        const p = String(entry.node?.path || "");
+        if (p) set.add(p);
+      }
+      return set;
+    }
+
+    function getVisibleFileIdsInEntries() {
+      const set = new Set();
+      for (let i = 0; i < WS.nav.entries.length; i++) {
+        const entry = WS.nav.entries[i];
+        if (!entry || entry.kind !== "file") continue;
+        const id = String(entry.id || "");
+        if (id) set.add(id);
+      }
+      return set;
     }
 
     function getSelectedPathsInCurrentDir() {
-      if (!WS.nav.dirNode) return [];
-      const baseDirs = getChildDirsForNodeBase(WS.nav.dirNode);
-      const baseSet = new Set(baseDirs.map(d => String(d.path || "")));
+      const baseSet = getVisibleDirPathsInEntries();
       return Array.from(WS.view.bulkTagSelectedPaths || []).filter(p => baseSet.has(String(p || "")));
+    }
+
+    function getSelectedFileIdsInCurrentView() {
+      const baseSet = getVisibleFileIdsInEntries();
+      return Array.from(WS.view.bulkFileSelectedIds || []).filter(id => baseSet.has(String(id || "")));
     }
 
     function closeActionMenus() {
@@ -3005,6 +3090,8 @@
       directoriesTagsRowEl.innerHTML = "";
       directoriesTagsRowEl.style.display = "flex";
 
+      const opt = WS.meta && WS.meta.options ? WS.meta.options : null;
+      const cycle = opt && opt.tagChipCycle === "bi" ? "bi" : "tri";
       const frag = document.createDocumentFragment();
 
       for (let i = 0; i < available.length; i++) {
@@ -3017,13 +3104,22 @@
         chip.title = state === "include" ? "Tag filter: include" : (state === "exclude" ? "Tag filter: hide" : "Tag filter: off");
         chip.addEventListener("click", (e) => {
           e.stopPropagation();
-          if (WS.view.tagIncludeFilters.has(t)) {
-            WS.view.tagIncludeFilters.delete(t);
-            WS.view.tagExcludeFilters.add(t);
-          } else if (WS.view.tagExcludeFilters.has(t)) {
-            WS.view.tagExcludeFilters.delete(t);
+          if (cycle === "bi") {
+            if (WS.view.tagIncludeFilters.has(t)) {
+              WS.view.tagIncludeFilters.delete(t);
+            } else {
+              WS.view.tagExcludeFilters.delete(t);
+              WS.view.tagIncludeFilters.add(t);
+            }
           } else {
-            WS.view.tagIncludeFilters.add(t);
+            if (WS.view.tagIncludeFilters.has(t)) {
+              WS.view.tagIncludeFilters.delete(t);
+              WS.view.tagExcludeFilters.add(t);
+            } else if (WS.view.tagExcludeFilters.has(t)) {
+              WS.view.tagExcludeFilters.delete(t);
+            } else {
+              WS.view.tagIncludeFilters.add(t);
+            }
           }
 
           WS.meta.dirty = true;
@@ -3058,23 +3154,31 @@
         WS.view.bulkSelectMode = false;
         clearBulkTagSelection();
       }
-      const selected = canBulk ? getSelectedPathsInCurrentDir() : [];
-      const selCount = selected.length;
-      const hasSelection = selCount > 0;
-      if (!hasSelection && WS.view.bulkActionMenuOpen) WS.view.bulkActionMenuOpen = false;
+      const selectedDirs = canBulk ? getSelectedPathsInCurrentDir() : [];
+      const selectedFiles = canBulk ? getSelectedFileIdsInCurrentView() : [];
+      const selCount = selectedDirs.length + selectedFiles.length;
+      const hasDirSelection = selectedDirs.length > 0;
+      if (!selCount && WS.view.bulkActionMenuOpen) WS.view.bulkActionMenuOpen = false;
 
       directoriesSelectBtn.textContent = WS.view.bulkSelectMode ? `Select${selCount ? ` (${selCount})` : ""}` : "Select";
       directoriesSelectBtn.disabled = !canBulk;
-      directoriesMenuBtn.disabled = !canBulk || !hasSelection;
+      directoriesMenuBtn.disabled = !canBulk || !hasDirSelection;
       directoriesClearBtn.disabled = !canBulk || !selCount;
 
-      const menuOpen = WS.view.bulkActionMenuOpen && canBulk && hasSelection;
+      const menuOpen = WS.view.bulkActionMenuOpen && canBulk && hasDirSelection;
       directoriesActionMenuEl.classList.toggle("open", menuOpen);
       directoriesActionMenuEl.innerHTML = "";
 
+      if (directoriesSelectAllBtn) {
+        const visibleFiles = canBulk ? Array.from(getVisibleFileIdsInEntries()) : [];
+        const allSelected = visibleFiles.length > 0 && selectedFiles.length === visibleFiles.length;
+        directoriesSelectAllBtn.style.display = WS.view.bulkSelectMode && visibleFiles.length ? "inline-flex" : "none";
+        directoriesSelectAllBtn.disabled = !WS.view.bulkSelectMode || !visibleFiles.length || allSelected;
+      }
+
       if (menuOpen) {
-        const allFavorite = selected.every(p => metaHasFavorite(p));
-        const allHidden = selected.every(p => metaHasHidden(p));
+        const allFavorite = selectedDirs.every(p => metaHasFavorite(p));
+        const allHidden = selectedDirs.every(p => metaHasHidden(p));
 
         const makeActionBtn = (label, onClick) => {
           const btn = document.createElement("button");
@@ -3094,12 +3198,22 @@
 
         directoriesActionMenuEl.appendChild(makeActionBtn(allFavorite ? "Unfavorite selected" : "Favorite selected", () => {
           WS.view.bulkActionMenuOpen = false;
-          metaSetFavoriteBulk(selected, !allFavorite);
+          metaSetFavoriteBulk(selectedDirs, !allFavorite);
         }));
 
         directoriesActionMenuEl.appendChild(makeActionBtn(allHidden ? "Unhide selected" : "Hide selected", () => {
           WS.view.bulkActionMenuOpen = false;
-          metaSetHiddenBulk(selected, !allHidden);
+          metaSetHiddenBulk(selectedDirs, !allHidden);
+        }));
+
+        directoriesActionMenuEl.appendChild(makeActionBtn("Score +1", () => {
+          WS.view.bulkActionMenuOpen = false;
+          metaBumpScoreBulk(selectedDirs, 1);
+        }));
+
+        directoriesActionMenuEl.appendChild(makeActionBtn("Score -1", () => {
+          WS.view.bulkActionMenuOpen = false;
+          metaBumpScoreBulk(selectedDirs, -1);
         }));
       }
     }
@@ -3217,6 +3331,7 @@
     function renderDirectoriesPane(keepScroll = false) {
       const prevScroll = keepScroll ? directoriesListEl.scrollTop : 0;
       directoriesListEl.innerHTML = "";
+      const canBulk = WS.view.bulkSelectMode && canUseBulkSelection();
 
       if (!WS.root) {
         directoriesPathEl.textContent = "—";
@@ -3263,7 +3378,6 @@
           const p = entry.node?.path || "";
           const isFavorite = metaHasFavorite(p);
           const isHidden = metaHasHidden(p);
-          const canBulk = WS.view.bulkSelectMode && canUseBulkSelection();
           const sel = canBulk && WS.view.bulkTagSelectedPaths.has(p);
           icon = canBulk ? (sel ? "☑" : "☐") : (isHidden ? "🙈" : (isFavorite ? "♥" : "📁"));
           name = displayName(entry.node?.name || "folder") || "folder";
@@ -3282,12 +3396,14 @@
           }
           const menuOpen = WS.view.dirActionMenuPath === p;
           const menuHtml = `
-          <div class="dirMenu">
+            <div class="dirMenu">
             <button class="dirMenuBtn" title="Folder actions">⋯</button>
             <div class="dropdownMenu${menuOpen ? " open" : ""}">
               <button type="button" data-action="tag">Tag</button>
               <button type="button" data-action="favorite">${isFavorite ? "Unfavorite" : "Favorite"}</button>
               <button type="button" data-action="hidden">${isHidden ? "Unhide" : "Hide"}</button>
+              <button type="button" data-action="score-up">Score +1</button>
+              <button type="button" data-action="score-down">Score -1</button>
             </div>
           </div>
           `;
@@ -3295,7 +3411,8 @@
         } else {
           const rec = WS.fileById.get(entry.id);
           const isVid = rec?.type === "video";
-          icon = isVid ? "🎞" : "🖼";
+          const sel = canBulk && WS.view.bulkFileSelectedIds.has(String(entry.id || ""));
+          icon = canBulk ? (sel ? "☑" : "☐") : (isVid ? "🎞" : "🖼");
           name = fileDisplayName(rec?.name || "file") || "file";
           meta = isVid ? "video" : "image";
         }
@@ -3413,6 +3530,14 @@
                   metaToggleHidden(p);
                   return;
                 }
+                if (action === "score-up") {
+                  metaBumpScore(p, 1);
+                  return;
+                }
+                if (action === "score-down") {
+                  metaBumpScore(p, -1);
+                  return;
+                }
               });
             });
           }
@@ -3440,6 +3565,27 @@
               const tags = normalizeTagsFromText(input.value || "");
               metaSetUserTags(p, tags);
             });
+          }
+        } else if (entry.kind === "file") {
+          const iconEl = row.querySelector(".dirIcon");
+          if (iconEl) {
+            const canBulk = WS.view.bulkSelectMode && canUseBulkSelection();
+            const id = String(entry.id || "");
+            const sel = canBulk && WS.view.bulkFileSelectedIds.has(id);
+            if (canBulk) {
+              iconEl.classList.add("dirCheckbox");
+              iconEl.title = sel ? "Deselect file" : "Select file";
+              iconEl.style.cursor = "pointer";
+              iconEl.addEventListener("click", (e) => {
+                e.stopPropagation();
+                if (!id) return;
+                if (WS.view.bulkFileSelectedIds.has(id)) WS.view.bulkFileSelectedIds.delete(id);
+                else WS.view.bulkFileSelectedIds.add(id);
+                renderDirectoriesPane(true);
+              });
+            } else {
+              iconEl.style.cursor = "default";
+            }
           }
         }
 
@@ -3521,6 +3667,19 @@
       });
     }
 
+    if (directoriesSelectAllBtn) {
+      directoriesSelectAllBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (!canUseBulkSelection()) return;
+        if (!WS.view.bulkSelectMode) return;
+        const visible = Array.from(getVisibleFileIdsInEntries());
+        if (!visible.length) return;
+        if (WS.view.bulkFileSelectedIds && WS.view.bulkFileSelectedIds.clear) WS.view.bulkFileSelectedIds.clear();
+        for (let i = 0; i < visible.length; i++) WS.view.bulkFileSelectedIds.add(String(visible[i] || ""));
+        renderDirectoriesPane(true);
+      });
+    }
+
     if (directoriesMenuBtn) {
       directoriesMenuBtn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -3567,7 +3726,13 @@
 
     if (directoriesSearchInput) {
       directoriesSearchInput.addEventListener("click", (e) => { e.stopPropagation(); });
-      directoriesSearchInput.addEventListener("keydown", (e) => { e.stopPropagation(); });
+      directoriesSearchInput.addEventListener("keydown", (e) => {
+        e.stopPropagation();
+        if (e.key === "Enter") {
+          e.preventDefault();
+          try { directoriesSearchInput.blur(); } catch {}
+        }
+      });
       directoriesSearchInput.addEventListener("input", () => {
         const val = directoriesSearchInput.value || "";
         const q = String(val || "").trim();
@@ -3579,6 +3744,7 @@
 
           TAG_EDIT_PATH = null;
           closeBulkTagPanel();
+          syncBulkSelectionForCurrentDir();
           rebuildDirectoriesEntries();
           WS.nav.selectedIndex = findNearestSelectableIndex(0, 1);
           syncPreviewToSelection();
@@ -3621,6 +3787,7 @@
 
         TAG_EDIT_PATH = null;
         closeBulkTagPanel();
+        syncBulkSelectionForCurrentDir();
 
         rebuildDirectoriesEntries();
         WS.nav.selectedIndex = findNearestSelectableIndex(0, 1);
@@ -3642,6 +3809,7 @@
 
         TAG_EDIT_PATH = null;
         closeBulkTagPanel();
+        syncBulkSelectionForCurrentDir();
 
         rebuildDirectoriesEntries();
         WS.nav.selectedIndex = findNearestSelectableIndex(WS.nav.selectedIndex, 1);
@@ -5587,8 +5755,8 @@
         }
 
         if (k === "1" || k === "6") { e.preventDefault(); viewerJumpRelative(-50); return; }
-        if (k === "7") { e.preventDefault(); viewerJumpRelative(-10); return; }
-        if (k === "2" || k === "8") { e.preventDefault(); viewerJumpToPrevFolderFirstFile(); return; }
+        if (k === "2" || k === "7") { e.preventDefault(); viewerJumpRelative(-10); return; }
+        if (k === "3" || k === "8") { e.preventDefault(); viewerJumpToPrevFolderFirstFile(); return; }
         if (k === "4" || k === "9") { e.preventDefault(); viewerJumpRelative(10); return; }
         if (k === "5" || k === "0") { e.preventDefault(); viewerJumpRelative(50); return; }
 
@@ -5636,8 +5804,8 @@
         }
 
         if (k === "1" || k === "6") { e.preventDefault(); viewerJumpRelative(-50); return; }
-        if (k === "7") { e.preventDefault(); viewerJumpRelative(-10); return; }
-        if (k === "2" || k === "8") { e.preventDefault(); viewerJumpToPrevFolderFirstFile(); return; }
+        if (k === "2" || k === "7") { e.preventDefault(); viewerJumpRelative(-10); return; }
+        if (k === "3" || k === "8") { e.preventDefault(); viewerJumpToPrevFolderFirstFile(); return; }
         if (k === "4" || k === "9") { e.preventDefault(); viewerJumpRelative(10); return; }
         if (k === "5" || k === "0") { e.preventDefault(); viewerJumpRelative(50); return; }
 
@@ -5651,8 +5819,8 @@
       if (k === "ArrowRight" || k === "d" || k === "D" || k === "l" || k === "L" || k === "Enter") { e.preventDefault(); enterSelectedDirectory(); return; }
 
       if (k === "1" || k === "6") { e.preventDefault(); moveDirectoriesSelection(-50); return; }
-      if (k === "7") { e.preventDefault(); moveDirectoriesSelection(-10); return; }
-      if (k === "2" || k === "8") { e.preventDefault(); jumpToPrevFolderFirstFile(); return; }
+      if (k === "2" || k === "7") { e.preventDefault(); moveDirectoriesSelection(-10); return; }
+      if (k === "3" || k === "8") { e.preventDefault(); jumpToPrevFolderFirstFile(); return; }
       if (k === "4" || k === "9") { e.preventDefault(); moveDirectoriesSelection(10); return; }
       if (k === "5" || k === "0") { e.preventDefault(); moveDirectoriesSelection(50); return; }
 
