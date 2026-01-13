@@ -188,7 +188,7 @@
         hideAfterFirstUnderscoreInFileNames: (typeof src.hideAfterFirstUnderscoreInFileNames === "boolean") ? src.hideAfterFirstUnderscoreInFileNames : d.hideAfterFirstUnderscoreInFileNames,
         forceTitleCaps: (typeof src.forceTitleCaps === "boolean") ? src.forceTitleCaps : d.forceTitleCaps,
         banicOpenWindow: (typeof src.banicOpenWindow === "boolean") ? src.banicOpenWindow : d.banicOpenWindow,
-        colorScheme: (src.colorScheme === "classic" || src.colorScheme === "light" || src.colorScheme === "superdark" || src.colorScheme === "synthwave" || src.colorScheme === "verdant" || src.colorScheme === "azure" || src.colorScheme === "ember" || src.colorScheme === "amber") ? src.colorScheme : d.colorScheme
+        colorScheme: (src.colorScheme === "classic" || src.colorScheme === "light" || src.colorScheme === "superdark" || src.colorScheme === "synthwave" || src.colorScheme === "verdant" || src.colorScheme === "azure" || src.colorScheme === "ember" || src.colorScheme === "amber" || src.colorScheme === "retro90s" || src.colorScheme === "retro90s-dark") ? src.colorScheme : d.colorScheme
       };
       return out;
     }
@@ -354,6 +354,9 @@
         dirActionMenuPath: "",
         dirSearchPinned: false,
         dirSearchQuery: "",
+        dirHistory: [],
+        dirHistoryIndex: -1,
+        dirSelectAnchorIndex: -1,
         favoritesMode: false,
         favoritesRootActive: false,
         favoritesAnchorPath: "",
@@ -463,6 +466,9 @@
       WS.view.dirActionMenuPath = "";
       WS.view.dirSearchPinned = false;
       WS.view.dirSearchQuery = "";
+      WS.view.dirHistory = [];
+      WS.view.dirHistoryIndex = -1;
+      WS.view.dirSelectAnchorIndex = -1;
       WS.view.favoritesMode = false;
       WS.view.favoritesRootActive = false;
       WS.view.favoritesAnchorPath = "";
@@ -552,6 +558,9 @@
     const directoriesBulkRowEl = $("directoriesBulkRow");
     const directoriesSearchInput = $("directoriesSearchInput");
     const directoriesSearchClearBtn = $("directoriesSearchClearBtn");
+    const dirBackBtn = $("dirBackBtn");
+    const dirForwardBtn = $("dirForwardBtn");
+    const dirUpBtn = $("dirUpBtn");
     const busyOverlay = $("busyOverlay");
     const busyLabel = $("busyLabel");
 
@@ -613,6 +622,7 @@
     let HELP_OPEN = false;
     let OPTIONS_OPEN = false;
     let HELP_HOLD_ACTIVE = false;
+    let PROPERTIES_OPEN = false;
 
     let BANIC_ACTIVE = false;
     let BANIC_STATE = { preview: null, viewer: null, slideshowWasActive: false };
@@ -980,7 +990,9 @@
         { value: "verdant", label: "Verdant" },
         { value: "azure", label: "Azure" },
         { value: "ember", label: "Ember" },
-        { value: "amber", label: "Amber" }
+        { value: "amber", label: "Amber" },
+        { value: "retro90s", label: "Retro 90s" },
+        { value: "retro90s-dark", label: "Retro 90s Dark" }
       ];
 
       optionsBodyEl.innerHTML = `
@@ -2085,6 +2097,7 @@
       kickVideoThumbsForPreview();
       kickImageThumbsForPreview();
       syncMetaButtons();
+      initDirHistory();
     }
 
     async function collectFilesFromDirHandle(dirHandle, basePath, out) {
@@ -2189,6 +2202,7 @@
       kickVideoThumbsForPreview();
       kickImageThumbsForPreview();
       syncMetaButtons();
+      initDirHistory();
     }
 
     function snapshotRefreshState() {
@@ -3248,6 +3262,7 @@
       syncButtons();
       kickVideoThumbsForPreview();
       kickImageThumbsForPreview();
+      recordDirHistory();
     }
 
     function syncPreviewToSelection() {
@@ -3293,6 +3308,7 @@
         syncButtons();
         kickVideoThumbsForPreview();
         kickImageThumbsForPreview();
+        recordDirHistory();
         return;
       }
 
@@ -3312,6 +3328,7 @@
         syncButtons();
         kickVideoThumbsForPreview();
         kickImageThumbsForPreview();
+        recordDirHistory();
         return;
       }
 
@@ -3331,6 +3348,7 @@
         syncButtons();
         kickVideoThumbsForPreview();
         kickImageThumbsForPreview();
+        recordDirHistory();
         return;
       }
 
@@ -3348,6 +3366,7 @@
       syncButtons();
       kickVideoThumbsForPreview();
       kickImageThumbsForPreview();
+      recordDirHistory();
     }
 
     function leaveDirectory() {
@@ -3418,6 +3437,21 @@
       syncButtons();
       kickVideoThumbsForPreview();
       kickImageThumbsForPreview();
+
+      recordDirHistory();
+    }
+
+    function goDirHistory(delta) {
+      if (!WS.view.dirHistory.length) return;
+      const next = WS.view.dirHistoryIndex + delta;
+      if (next < 0 || next >= WS.view.dirHistory.length) return;
+      WS.view.dirHistoryIndex = next;
+      restoreDirHistoryEntry(WS.view.dirHistory[next]);
+    }
+
+    function goDirUp() {
+      if (!WS.nav.dirNode || !WS.nav.dirNode.parent) return;
+      leaveDirectory();
     }
 
     function getDirectoriesPathText() {
@@ -3608,6 +3642,114 @@
     function closeActionMenus() {
       WS.view.bulkActionMenuOpen = false;
       WS.view.dirActionMenuPath = "";
+    }
+
+    function entryKeyForSelection(entry) {
+      if (!entry) return "";
+      if (entry.kind === "dir") return `dir:${String(entry.node?.path || "")}`;
+      if (entry.kind === "file") return `file:${String(entry.id || "")}`;
+      return "";
+    }
+
+    function findEntryIndexByKey(key) {
+      if (!key) return -1;
+      for (let i = 0; i < WS.nav.entries.length; i++) {
+        const entry = WS.nav.entries[i];
+        if (entryKeyForSelection(entry) === key) return i;
+      }
+      return -1;
+    }
+
+    function toggleEntrySelection(entry) {
+      if (!entry) return;
+      if (entry.kind === "dir") {
+        const p = String(entry.node?.path || "");
+        if (!p) return;
+        if (WS.view.bulkTagSelectedPaths.has(p)) WS.view.bulkTagSelectedPaths.delete(p);
+        else WS.view.bulkTagSelectedPaths.add(p);
+      } else if (entry.kind === "file") {
+        const id = String(entry.id || "");
+        if (!id) return;
+        if (WS.view.bulkFileSelectedIds.has(id)) WS.view.bulkFileSelectedIds.delete(id);
+        else WS.view.bulkFileSelectedIds.add(id);
+      }
+    }
+
+    function addEntrySelection(entry) {
+      if (!entry) return;
+      if (entry.kind === "dir") {
+        const p = String(entry.node?.path || "");
+        if (p) WS.view.bulkTagSelectedPaths.add(p);
+      } else if (entry.kind === "file") {
+        const id = String(entry.id || "");
+        if (id) WS.view.bulkFileSelectedIds.add(id);
+      }
+    }
+
+    function selectEntryRange(anchorIdx, targetIdx) {
+      if (anchorIdx < 0 || targetIdx < 0) return;
+      const start = Math.min(anchorIdx, targetIdx);
+      const end = Math.max(anchorIdx, targetIdx);
+      clearBulkTagSelection();
+      WS.view.bulkSelectMode = true;
+      for (let i = start; i <= end; i++) {
+        const entry = WS.nav.entries[i];
+        if (!entry || !isSelectableEntry(entry)) continue;
+        addEntrySelection(entry);
+      }
+    }
+
+    function canTrackDirHistory() {
+      if (!WS.root) return false;
+      if (!WS.nav.dirNode) return false;
+      if (WS.view.dirSearchPinned && WS.view.searchRootActive) return false;
+      if (WS.view.favoritesMode || WS.view.hiddenMode) return false;
+      return true;
+    }
+
+    function recordDirHistory() {
+      if (!canTrackDirHistory()) return;
+      const path = String(WS.nav.dirNode?.path || "");
+      const selectedKey = entryKeyForSelection(WS.nav.entries[WS.nav.selectedIndex] || null);
+      const cur = WS.view.dirHistory[WS.view.dirHistoryIndex] || null;
+      if (cur && cur.path === path) {
+        cur.selectedKey = selectedKey;
+        return;
+      }
+      if (WS.view.dirHistoryIndex < WS.view.dirHistory.length - 1) {
+        WS.view.dirHistory = WS.view.dirHistory.slice(0, WS.view.dirHistoryIndex + 1);
+      }
+      WS.view.dirHistory.push({ path, selectedKey });
+      WS.view.dirHistoryIndex = WS.view.dirHistory.length - 1;
+    }
+
+    function initDirHistory() {
+      WS.view.dirHistory = [];
+      WS.view.dirHistoryIndex = -1;
+      if (!WS.root || !WS.nav.dirNode) return;
+      const path = String(WS.nav.dirNode?.path || "");
+      const selectedKey = entryKeyForSelection(WS.nav.entries[WS.nav.selectedIndex] || null);
+      WS.view.dirHistory.push({ path, selectedKey });
+      WS.view.dirHistoryIndex = 0;
+    }
+
+    function restoreDirHistoryEntry(entry) {
+      if (!entry || !WS.root) return;
+      const node = WS.dirByPath.get(String(entry.path || "")) || WS.root;
+      WS.nav.dirNode = node;
+      syncBulkSelectionForCurrentDir();
+      syncFavoritesUi();
+      syncHiddenUi();
+      syncTagUiForCurrentDir();
+      rebuildDirectoriesEntries();
+      const idx = findEntryIndexByKey(String(entry.selectedKey || ""));
+      WS.nav.selectedIndex = findNearestSelectableIndex(idx >= 0 ? idx : 0, 1);
+      syncPreviewToSelection();
+      renderDirectoriesPane(true);
+      renderPreviewPane(true, true);
+      syncButtons();
+      kickVideoThumbsForPreview();
+      kickImageThumbsForPreview();
     }
 
     function positionDropdownMenu(menuBtn, menuEl) {
@@ -4090,8 +4232,28 @@
           }
         }
 
-        row.addEventListener("click", () => {
+        row.addEventListener("click", (e) => {
           closeActionMenus();
+          if (e.shiftKey) {
+            const anchor = WS.view.dirSelectAnchorIndex >= 0 ? WS.view.dirSelectAnchorIndex : idx;
+            selectEntryRange(anchor, idx);
+            WS.view.dirSelectAnchorIndex = idx;
+            setDirectoriesSelection(idx);
+            return;
+          }
+          if (e.ctrlKey || e.metaKey) {
+            WS.view.bulkSelectMode = true;
+            toggleEntrySelection(entry);
+            WS.view.dirSelectAnchorIndex = idx;
+            setDirectoriesSelection(idx);
+            return;
+          }
+
+          if (WS.view.bulkSelectMode && (WS.view.bulkTagSelectedPaths.size || WS.view.bulkFileSelectedIds.size)) {
+            clearBulkTagSelection();
+            WS.view.bulkSelectMode = false;
+          }
+          WS.view.dirSelectAnchorIndex = idx;
           setDirectoriesSelection(idx);
         });
 
@@ -4382,6 +4544,27 @@
       });
     }
 
+    if (dirBackBtn) {
+      dirBackBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        goDirHistory(-1);
+      });
+    }
+
+    if (dirForwardBtn) {
+      dirForwardBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        goDirHistory(1);
+      });
+    }
+
+    if (dirUpBtn) {
+      dirUpBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        goDirUp();
+      });
+    }
+
     if (directoriesClearBtn) {
       directoriesClearBtn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -4472,6 +4655,26 @@
           e.preventDefault();
           startDirectorySearch();
           try { directoriesSearchInput.blur(); } catch {}
+          return;
+        }
+        if (e.key === "Escape") {
+          e.preventDefault();
+          cancelDirectorySearch();
+          directoriesSearchInput.value = "";
+          if (directoriesSearchClearBtn) directoriesSearchClearBtn.disabled = true;
+
+          TAG_EDIT_PATH = null;
+          closeBulkTagPanel();
+          syncBulkSelectionForCurrentDir();
+
+          rebuildDirectoriesEntries();
+          WS.nav.selectedIndex = findNearestSelectableIndex(WS.nav.selectedIndex, 1);
+          syncPreviewToSelection();
+          renderDirectoriesPane(true);
+          renderPreviewPane(false, true);
+          syncButtons();
+          kickVideoThumbsForPreview();
+          kickImageThumbsForPreview();
         }
       });
       directoriesSearchInput.addEventListener("input", () => {
@@ -6290,6 +6493,9 @@
       }
 
       if (toggleTagsBtn) toggleTagsBtn.disabled = true;
+      if (dirBackBtn) dirBackBtn.disabled = !(WS.view.dirHistoryIndex > 0);
+      if (dirForwardBtn) dirForwardBtn.disabled = !(WS.view.dirHistoryIndex >= 0 && WS.view.dirHistoryIndex < WS.view.dirHistory.length - 1);
+      if (dirUpBtn) dirUpBtn.disabled = !WS.nav.dirNode || !WS.nav.dirNode.parent || (WS.view.dirSearchPinned && WS.view.searchRootActive) || WS.view.favoritesMode || WS.view.hiddenMode;
 
       syncMetaButtons();
       updateModePill();
@@ -6391,6 +6597,12 @@
 
       if (e.key === "/") {
         if (isTextInputTarget(e.target)) return;
+        if (VIEWER_MODE) return;
+        if (directoriesSearchInput && !directoriesSearchInput.disabled) {
+          e.preventDefault();
+          try { directoriesSearchInput.focus(); directoriesSearchInput.select(); } catch {}
+          return;
+        }
         e.preventDefault();
         setHelpHold(true);
         return;
@@ -6404,15 +6616,19 @@
 
       if (BANIC_ACTIVE) return;
 
-      if (HELP_OPEN) {
-        if (e.key === "Escape") { e.preventDefault(); closeHelp(); }
-        return;
+      if (e.key === "Escape") {
+        if (HELP_OPEN) { e.preventDefault(); closeHelp(); return; }
+        if (OPTIONS_OPEN) { e.preventDefault(); closeOptions(); return; }
+        if (WS.view.bulkActionMenuOpen || WS.view.dirActionMenuPath) {
+          e.preventDefault();
+          closeActionMenus();
+          renderDirectoriesPane(true);
+          return;
+        }
       }
 
-      if (OPTIONS_OPEN) {
-        if (e.key === "Escape") { e.preventDefault(); closeOptions(); }
-        return;
-      }
+      if (HELP_OPEN) return;
+      if (OPTIONS_OPEN) return;
 
       if (isTextInputTarget(e.target)) return;
 

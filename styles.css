@@ -171,6 +171,46 @@
       --anchor-internal-color2-primary: hsl(200, 95%, 55%);
     }
 
+    :root[data-theme="retro90s"] {
+      --color0-primary: #1a1a1a;
+      --color0-secondary: #2a2a2a;
+      --color0-tertirary: #4a4a4a;
+
+      --color1-primary: #c7c7b7;
+      --color1-primary-transparent: rgba(199, 199, 183, 0.92);
+      --color1-secondary: #d6d2c6;
+      --color1-secondary-transparent: rgba(214, 210, 198, 0.85);
+      --color1-tertiary: #8a8a7a;
+
+      --anchor-internal-color2-primary: #1a4b8c;
+      --tag-include-bg: #2b4d7a;
+      --tag-include-border: #17345a;
+      --tag-include-color: #e9f1ff;
+      --tag-exclude-bg: #7a2b33;
+      --tag-exclude-border: #541820;
+      --tag-exclude-color: #ffe9ec;
+    }
+
+    :root[data-theme="retro90s-dark"] {
+      --color0-primary: #e6e2d8;
+      --color0-secondary: #bcb7aa;
+      --color0-tertirary: #8a877d;
+
+      --color1-primary: #1c1a17;
+      --color1-primary-transparent: rgba(28, 26, 23, 0.92);
+      --color1-secondary: #26231f;
+      --color1-secondary-transparent: rgba(38, 35, 31, 0.85);
+      --color1-tertiary: #4b4740;
+
+      --anchor-internal-color2-primary: #6fa0ff;
+      --tag-include-bg: #203457;
+      --tag-include-border: #101f38;
+      --tag-include-color: #e6efff;
+      --tag-exclude-bg: #4a1e24;
+      --tag-exclude-border: #2f0f14;
+      --tag-exclude-color: #ffe6ea;
+    }
+
     :root {
       --tag-include-bg: #3b82f6;
       --tag-include-border: #1d4ed8;
@@ -188,6 +228,22 @@
       background: var(--color1-primary);
       color: var(--color0-primary);
       font: 14px/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    :root[data-theme="retro90s"] body {
+      font-family: "MS Sans Serif", "Segoe UI", Tahoma, Geneva, sans-serif;
+      background-image:
+        linear-gradient(0deg, rgba(255,255,255,0.03), rgba(255,255,255,0.03)),
+        radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: 100% 100%, 3px 3px;
+    }
+
+    :root[data-theme="retro90s-dark"] body {
+      font-family: "MS Sans Serif", "Segoe UI", Tahoma, Geneva, sans-serif;
+      background-image:
+        linear-gradient(0deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02)),
+        radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
+      background-size: 100% 100%, 3px 3px;
     }
 
     body { overflow: hidden; }
@@ -238,6 +294,46 @@
     button:active { transform: translateY(1px); }
     button:disabled { opacity: .55; cursor: not-allowed; }
 
+    :root[data-theme="retro90s"] button,
+    :root[data-theme="retro90s"] .miniBtn {
+      color: #1a1a1a;
+      background: #d6d2c6;
+      border: 2px solid #7d7d70;
+      box-shadow: inset 1px 1px 0 #f3f2ea, inset -1px -1px 0 #6f6f63;
+      font-weight: 700;
+    }
+
+    :root[data-theme="retro90s"] button:hover,
+    :root[data-theme="retro90s"] .miniBtn:hover {
+      background: #e2ded4;
+    }
+
+    :root[data-theme="retro90s"] button:active,
+    :root[data-theme="retro90s"] .miniBtn:active {
+      box-shadow: inset -1px -1px 0 #f3f2ea, inset 1px 1px 0 #6f6f63;
+      transform: translateY(1px);
+    }
+
+    :root[data-theme="retro90s-dark"] button,
+    :root[data-theme="retro90s-dark"] .miniBtn {
+      color: #f2efe7;
+      background: #2f2b26;
+      border: 2px solid #4b4740;
+      box-shadow: inset 1px 1px 0 #5c574f, inset -1px -1px 0 #161412;
+      font-weight: 700;
+    }
+
+    :root[data-theme="retro90s-dark"] button:hover,
+    :root[data-theme="retro90s-dark"] .miniBtn:hover {
+      background: #3a352f;
+    }
+
+    :root[data-theme="retro90s-dark"] button:active,
+    :root[data-theme="retro90s-dark"] .miniBtn:active {
+      box-shadow: inset -1px -1px 0 #5c574f, inset 1px 1px 0 #161412;
+      transform: translateY(1px);
+    }
+
     input[type="file"] {
       background: var(--color1-primary);
       color: var(--color0-primary);
@@ -265,6 +361,13 @@
       color: var(--color0-primary);
       user-select: none;
       white-space: nowrap;
+    }
+
+    :root[data-theme="retro90s"] .pill,
+    :root[data-theme="retro90s-dark"] .pill {
+      border-width: 2px;
+      border-color: rgba(0,0,0,0.35);
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.65), inset -1px -1px 0 rgba(0,0,0,0.25);
     }
 
     .miniBtn {
@@ -473,10 +576,96 @@
       padding: 8px 8px 10px;
       overflow: auto;
       min-height: 0;
+      flex: 1;
       font-size: 12px;
       display: flex;
       flex-direction: column;
       gap: 6px;
+    }
+
+    .statusBar {
+      padding: 6px 10px 7px;
+      font-size: 11px;
+      color: var(--color0-secondary);
+      user-select: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      background: var(--color1-primary);
+    }
+
+    :root[data-theme="retro90s"] .statusBar,
+    :root[data-theme="retro90s-dark"] .statusBar {
+      border-top: 2px solid rgba(0,0,0,0.35);
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.4);
+    }
+
+    .dirDetailsHeader,
+    .dirDetailsRow {
+      display: grid;
+      grid-template-columns: 1fr 90px 90px 130px;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dirDetailsHeader {
+      padding: 6px 8px;
+      border-radius: 3px;
+      background: var(--color1-primary);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .02em;
+      color: var(--color0-primary);
+      border: 1px solid var(--color1-tertiary);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .dirDetailsHeader button {
+      background: transparent;
+      border: 0;
+      padding: 0;
+      font-size: 11px;
+      font-weight: 800;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .dirDetailsHeader button.active::after {
+      content: "▲";
+      margin-left: 6px;
+      font-size: 9px;
+    }
+
+    .dirDetailsHeader button.active.desc::after {
+      content: "▼";
+    }
+
+    .dirDetailsRow.dirRow {
+      padding: 6px 8px;
+    }
+
+    .dirDetailsCell {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 11px;
+      color: var(--color0-secondary);
+    }
+
+    .dirDetailsNameCell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .dirDetailsNameCell .dirName {
+      font-size: 12px;
+      color: var(--color0-primary);
     }
 
     .dirRow {
@@ -680,6 +869,13 @@
       user-select: none;
       max-width: 280px;
     }
+
+    :root[data-theme="retro90s"] .crumb,
+    :root[data-theme="retro90s-dark"] .crumb {
+      border-width: 2px;
+      border-color: rgba(0,0,0,0.35);
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.65), inset -1px -1px 0 rgba(0,0,0,0.25);
+    }
     .crumb:hover { background: rgba(0,0,0,0.35); }
     .crumb span {
       overflow: hidden;
@@ -703,6 +899,7 @@
       padding: 8px;
       overflow: auto;
       min-height: 0;
+      flex: 1;
       display: flex;
       flex-direction: column;
     }
@@ -1149,6 +1346,19 @@
       overflow: hidden;
     }
 
+    :root[data-theme="retro90s"] #helpCard,
+    :root[data-theme="retro90s-dark"] #helpCard,
+    :root[data-theme="retro90s"] #optionsCard,
+    :root[data-theme="retro90s-dark"] #optionsCard,
+    :root[data-theme="retro90s"] #propertiesCard,
+    :root[data-theme="retro90s-dark"] #propertiesCard,
+    :root[data-theme="retro90s"] #helpHoldCard,
+    :root[data-theme="retro90s-dark"] #helpHoldCard {
+      border-width: 2px;
+      border-color: rgba(0,0,0,0.4);
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.35), inset -1px -1px 0 rgba(0,0,0,0.25);
+    }
+
     #helpHeader {
       padding: 10px 10px 8px;
       border-bottom: 1px solid var(--color1-tertiary);
@@ -1458,6 +1668,10 @@
       }
       #app::before {
         left: min(300px, 42vw);
+      }
+      .dirDetailsHeader,
+      .dirDetailsRow {
+        grid-template-columns: 1fr 70px 70px 110px;
       }
       .gridFolders { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
       .gridFiles { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
