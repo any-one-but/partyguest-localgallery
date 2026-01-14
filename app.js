@@ -166,7 +166,9 @@
         altGalleryMode: false,
         retroMode: false,
         colorScheme: "classic"
-      };
+      ,
+      leftPaneWidthPct: 0.28
+    };
     }
 
     function normalizeOptions(o) {
@@ -200,7 +202,13 @@
         altGalleryMode: (typeof src.altGalleryMode === "boolean") ? src.altGalleryMode : d.altGalleryMode,
         retroMode: (typeof src.retroMode === "boolean") ? src.retroMode : d.retroMode,
         colorScheme: (src.colorScheme === "classic" || src.colorScheme === "light" || src.colorScheme === "superdark" || src.colorScheme === "synthwave" || src.colorScheme === "verdant" || src.colorScheme === "azure" || src.colorScheme === "ember" || src.colorScheme === "amber" || src.colorScheme === "retro90s" || src.colorScheme === "retro90s-dark") ? src.colorScheme : d.colorScheme
-      };
+      ,
+      leftPaneWidthPct: (function(){
+        const v = parseFloat(src.leftPaneWidthPct);
+        if (Number.isFinite(v)) return Math.max(0.05, Math.min(0.9, v));
+        return 0.28;
+      })()
+    };
       return out;
     }
 
@@ -297,6 +305,7 @@
         applyColorSchemeFromOptions();
         applyRetroModeFromOptions();
         applyDisplaySizesFromOptions();
+        applyPaneDividerFromOptions();
         syncButtons();
         return;
       }
@@ -313,11 +322,30 @@
       syncPreviewToSelection();
       renderDirectoriesPane(true);
       renderPreviewPane(true, true);
+      applyPaneDividerFromOptions();
       syncButtons();
       kickVideoThumbsForPreview();
       kickImageThumbsForPreview();
       if (VIEWER_MODE) renderViewerItem(viewerIndex);
       else if (ACTIVE_MEDIA_SURFACE === "preview") renderPreviewViewerItem(viewerIndex);
+    }
+
+    function applyPaneDividerFromOptions() {
+      const opt = WS.meta && WS.meta.options ? WS.meta.options : null;
+      const pct = (opt && typeof opt.leftPaneWidthPct === 'number') ? opt.leftPaneWidthPct : (opt && !Number.isNaN(parseFloat(opt.leftPaneWidthPct)) ? parseFloat(opt.leftPaneWidthPct) : 0.28);
+      setDividerPositionFromPct(pct);
+    }
+
+    function setDividerPositionFromPct(pct) {
+      pct = Math.max(0.05, Math.min(0.9, Number(pct) || 0.28));
+      const appEl = document.getElementById("app");
+      if (!appEl) return;
+      appEl.style.gridTemplateColumns = `${(pct * 100).toFixed(2)}% 1fr`;
+      const dividerEl = document.getElementById("divider");
+      if (dividerEl) {
+        const left = Math.round(appEl.clientWidth * pct);
+        dividerEl.style.left = left + "px";
+      }
     }
 
     const WS = {
@@ -612,6 +640,51 @@
     const banicOverlayEl = document.createElement("div");
     banicOverlayEl.id = "banicOverlay";
     document.body.appendChild(banicOverlayEl);
+
+    // Divider setup: attach drag handlers and initialize position
+    (function setupDivider() {
+      const appEl = document.getElementById("app");
+      const divider = document.getElementById("divider");
+      if (!appEl || !divider) return;
+
+      let dragging = false;
+      let activePointerId = null;
+
+      function onMoveClientX(clientX) {
+        const rect = appEl.getBoundingClientRect();
+        const min = Math.max(180, Math.round(rect.width * 0.12));
+        const max = Math.max(min + 50, rect.width - 200);
+        let left = Math.min(Math.max(clientX - rect.left, min), max);
+        const pct = left / rect.width;
+        WS.meta.options.leftPaneWidthPct = pct;
+        setDividerPositionFromPct(pct);
+      }
+
+      divider.addEventListener('pointerdown', (ev) => {
+        ev.preventDefault();
+        dragging = true;
+        activePointerId = ev.pointerId;
+        try { divider.setPointerCapture(activePointerId); } catch (e) {}
+      });
+
+      document.addEventListener('pointermove', (ev) => {
+        if (!dragging) return;
+        onMoveClientX(ev.clientX);
+      });
+
+      document.addEventListener('pointerup', (ev) => {
+        if (!dragging) return;
+        dragging = false;
+        try { divider.releasePointerCapture(activePointerId); } catch (e) {}
+        activePointerId = null;
+        if (typeof metaScheduleSave === 'function') metaScheduleSave();
+      });
+
+      window.addEventListener('resize', () => { applyPaneDividerFromOptions(); });
+
+      // initial apply from saved options
+      applyPaneDividerFromOptions();
+    })();
 
     let MAIN_STATUS_TIMEOUT = null;
 

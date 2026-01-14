@@ -275,16 +275,36 @@
       position: relative;
     }
 
-    #app::before {
-      content: "";
+    /* old pseudo-divider left in place for legacy; hidden now to allow real divider element */
+    #app::before { display: none; }
+
+    /* draggable divider between panes */
+    #divider {
       position: absolute;
       top: 0;
       bottom: 0;
       left: min(320px, 28vw);
+      width: 8px;
+      margin-left: -4px;
+      z-index: 40;
+      cursor: col-resize;
+      background: transparent;
+      touch-action: none;
+    }
+
+    #divider::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 0;
+      bottom: 0;
       width: 1px;
       background: var(--color1-tertiary);
       pointer-events: none;
     }
+
+    /* no hover color change for divider */
 
     a { color: var(--anchor-internal-color2-primary); }
 
