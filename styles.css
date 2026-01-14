@@ -230,20 +230,31 @@
       font: 14px/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    :root[data-theme="retro90s"] body {
-      font-family: "MS Sans Serif", "Segoe UI", Tahoma, Geneva, sans-serif;
+    :root[data-retro="on"] body {
+      font-family: "Pixelated MS Sans Serif", "MS Gothic", "Chicago", "VT323", monospace;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      text-rendering: optimizeSpeed;
+      -webkit-font-smoothing: none;
       background-image:
         linear-gradient(0deg, rgba(255,255,255,0.03), rgba(255,255,255,0.03)),
         radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
       background-size: 100% 100%, 3px 3px;
     }
 
-    :root[data-theme="retro90s-dark"] body {
-      font-family: "MS Sans Serif", "Segoe UI", Tahoma, Geneva, sans-serif;
-      background-image:
-        linear-gradient(0deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02)),
-        radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
-      background-size: 100% 100%, 3px 3px;
+    :root[data-retro="on"] #app {
+      image-rendering: pixelated;
+      filter: contrast(1.12) saturate(0.85);
+    }
+
+
+    :root[data-retro="on"] .dirRow,
+    :root[data-retro="on"] .folderCard,
+    :root[data-retro="on"] .fileCard,
+    :root[data-retro="on"] #helpCard,
+    :root[data-retro="on"] #optionsCard,
+    :root[data-retro="on"] #propertiesCard {
+      border-radius: 0;
     }
 
     body { overflow: hidden; }
@@ -312,6 +323,12 @@
     :root[data-theme="retro90s"] .miniBtn:active {
       box-shadow: inset -1px -1px 0 #f3f2ea, inset 1px 1px 0 #6f6f63;
       transform: translateY(1px);
+    }
+
+    :root[data-retro="on"] button,
+    :root[data-retro="on"] .miniBtn {
+      border-width: 2px;
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.35), inset -1px -1px 0 rgba(0,0,0,0.35);
     }
 
     :root[data-theme="retro90s-dark"] button,

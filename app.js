@@ -96,6 +96,13 @@
       return true;
     }
 
+    function isValidFileName(name) {
+      if (!name) return false;
+      if (name === "." || name === "..") return false;
+      if (/[\/\\]/.test(name)) return false;
+      return true;
+    }
+
     function remapPathPrefix(oldPrefix, newPrefix, path) {
       const p = String(path || "");
       if (!oldPrefix) return p;
@@ -156,6 +163,7 @@
         hideAfterFirstUnderscoreInFileNames: false,
         forceTitleCaps: false,
         banicOpenWindow: true,
+        retroMode: false,
         colorScheme: "classic"
       };
     }
@@ -188,6 +196,7 @@
         hideAfterFirstUnderscoreInFileNames: (typeof src.hideAfterFirstUnderscoreInFileNames === "boolean") ? src.hideAfterFirstUnderscoreInFileNames : d.hideAfterFirstUnderscoreInFileNames,
         forceTitleCaps: (typeof src.forceTitleCaps === "boolean") ? src.forceTitleCaps : d.forceTitleCaps,
         banicOpenWindow: (typeof src.banicOpenWindow === "boolean") ? src.banicOpenWindow : d.banicOpenWindow,
+        retroMode: (typeof src.retroMode === "boolean") ? src.retroMode : d.retroMode,
         colorScheme: (src.colorScheme === "classic" || src.colorScheme === "light" || src.colorScheme === "superdark" || src.colorScheme === "synthwave" || src.colorScheme === "verdant" || src.colorScheme === "azure" || src.colorScheme === "ember" || src.colorScheme === "amber" || src.colorScheme === "retro90s" || src.colorScheme === "retro90s-dark") ? src.colorScheme : d.colorScheme
       };
       return out;
@@ -260,6 +269,15 @@
       else root.setAttribute("data-theme", scheme);
     }
 
+    function applyRetroModeFromOptions() {
+      const opt = WS.meta && WS.meta.options ? WS.meta.options : null;
+      const root = document.documentElement;
+      if (!root) return;
+      const on = !!(opt && opt.retroMode);
+      if (on) root.setAttribute("data-retro", "on");
+      else root.removeAttribute("data-retro");
+    }
+
     function applyDisplaySizesFromOptions() {
       const opt = WS.meta && WS.meta.options ? WS.meta.options : null;
       const root = document.documentElement;
@@ -275,6 +293,7 @@
     function applyOptionsEverywhere(invalidateThumbs = false) {
       if (!WS.root) {
         applyColorSchemeFromOptions();
+        applyRetroModeFromOptions();
         applyDisplaySizesFromOptions();
         syncButtons();
         return;
@@ -285,6 +304,7 @@
       }
 
       applyColorSchemeFromOptions();
+      applyRetroModeFromOptions();
       applyDisplaySizesFromOptions();
       rebuildDirectoriesEntries();
       WS.nav.selectedIndex = findNearestSelectableIndex(WS.nav.selectedIndex, 1);
@@ -357,6 +377,7 @@
         dirHistory: [],
         dirHistoryIndex: -1,
         dirSelectAnchorIndex: -1,
+        fileActionMenuId: "",
         favoritesMode: false,
         favoritesRootActive: false,
         favoritesAnchorPath: "",
@@ -469,6 +490,7 @@
       WS.view.dirHistory = [];
       WS.view.dirHistoryIndex = -1;
       WS.view.dirSelectAnchorIndex = -1;
+      WS.view.fileActionMenuId = "";
       WS.view.favoritesMode = false;
       WS.view.favoritesRootActive = false;
       WS.view.favoritesAnchorPath = "";
@@ -552,6 +574,7 @@
     const directoriesActionRowEl = $("directoriesActionRow");
     const directoriesSelectBtn = $("directoriesSelectBtn");
     const directoriesSelectAllBtn = $("directoriesSelectAllBtn");
+    // Select menu (three line / ☰) button.
     const directoriesMenuBtn = $("directoriesMenuBtn");
     const directoriesActionMenuEl = $("directoriesActionMenu");
     const directoriesClearBtn = $("directoriesClearBtn");
@@ -617,6 +640,7 @@
 
     let TAG_EDIT_PATH = null;
     let RENAME_EDIT_PATH = null;
+    let RENAME_EDIT_FILE_ID = null;
     let RENAME_BUSY = false;
 
     let HELP_OPEN = false;
@@ -740,90 +764,82 @@
        Help overlay
        ========================================================= */
 
-    const HELP_HTML = `
-      <div class="label" style="margin-bottom:8px;">Local Gallery is a local-only browser for folders of images and videos, with most controls mirrored so you can use it one-handed from either side of the keyboard. It loads a folder locally and never uploads files, but it can alter files by writing metadata (scores, tags, options) so use it cautiously. The root starts on the left and you navigate deeper by moving right and down; the directories pane lists the current folder’s files, while the preview pane shows the selected item in more detail.</div>
+    const HELP_MD_FALLBACK = "Help content is unavailable. Check help.md.";
+    let HELP_MD_CACHE = null;
 
-      <h2>Load a folder (writable)</h2>
-      <ul>
-        <li>Click <code>Load Folder</code> to pick a root folder. The app will scan for images/videos and create a small <code>.local-gallery</code> folder to store scoring, tags, and preferences.</li>
-        <li>Only media files are shown (images + videos). Filter modes can restrict what appears.</li>
-      </ul>
+    function renderInlineMarkdown(text) {
+      const parts = String(text || "").split("`");
+      return parts.map((part, idx) => {
+        const safe = escapeHtml(part);
+        return (idx % 2) ? `<code>${safe}</code>` : safe;
+      }).join("");
+    }
 
-      <h2>Basic navigation keys (mirrored)</h2>
-      <ul>
-        <li>Move selection: <code>↑/↓</code>, <code>W/S</code>, or <code>I/K</code>.</li>
-        <li>Enter/leave folders: <code>→</code>/<code>Enter</code>/<code>D</code>/<code>L</code> to go in, <code>←</code>/<code>Backspace</code>/<code>A</code>/<code>J</code> to go out.</li>
-        <li>Open Gallery Mode: <code>G</code>. Close preview/gallery: <code>Esc</code> (or <code>G</code> in Gallery Mode).</li>
-        <li>Fast jumps: <code>1/6</code> -50, <code>2/7</code> -10, <code>3/8</code> previous folder’s first file, <code>4/9</code> +10, <code>5/0</code> +50.</li>
-        <li>Video controls: <code>Space</code> play/pause, <code>Q/E</code> seek back/forward, mirrored by <code>U/O</code>.</li>
-        <li>Filters & behaviors: <code>F/H</code> cycle media filter, <code>R/Y</code> toggle random order, <code>C/N</code> cycle folder behavior.</li>
-        <li>Slideshow: <code>Shift</code> toggles the slideshow speed set in Options.</li>
-        <li>Jump to next folder’s first file: <code>X</code> or <code>M</code>.</li>
-        <li>Jump to previous folder’s first file: <code>3</code> or <code>8</code>.</li>
-      </ul>
+    function markdownToHtml(md) {
+      const lines = String(md || "").replace(/\r\n/g, "\n").split("\n");
+      let out = "";
+      let inList = false;
+      let sawBody = false;
 
-      <h2>Other hotkeys & controls</h2>
-      <ul>
-        <li>Hold <code>/</code> to show the keyboard cheatsheet overlay (only while the key is held down).</li>
-        <li>Use the <code>?</code> button in the title bar to open/close this help panel.</li>
-      </ul>
+      const closeList = () => {
+        if (!inList) return;
+        out += "</ul>";
+        inList = false;
+      };
 
-      <h2>BANIC! button</h2>
-      <ul>
-        <li>Press <code>B</code> to trigger BANIC! (mutes Local Gallery, blacks out the screen, and can open a harmless site). Press <code>B</code> again to resume.</li>
-      </ul>
+      for (const raw of lines) {
+        const line = raw.trimEnd();
+        if (!line.trim()) {
+          closeList();
+          continue;
+        }
+        if (line.startsWith("## ")) {
+          closeList();
+          out += `<h2>${renderInlineMarkdown(line.slice(3).trim())}</h2>`;
+          sawBody = true;
+          continue;
+        }
+        if (line.startsWith("- ")) {
+          if (!inList) {
+            out += "<ul>";
+            inList = true;
+          }
+          out += `<li>${renderInlineMarkdown(line.slice(2).trim())}</li>`;
+          sawBody = true;
+          continue;
+        }
+        closeList();
+        if (!sawBody) {
+          out += `<div class="label" style="margin-bottom:8px;">${renderInlineMarkdown(line.trim())}</div>`;
+        } else {
+          out += `<p>${renderInlineMarkdown(line.trim())}</p>`;
+        }
+        sawBody = true;
+      }
+      closeList();
+      return out || `<div class="label">${escapeHtml(HELP_MD_FALLBACK)}</div>`;
+    }
 
-      <h2>Directories + preview panes</h2>
-      <ul>
-        <li>Selecting a folder shows its contents; selecting a file shows a large in-pane preview.</li>
-        <li>The breadcrumb at the top lets you jump to any parent folder.</li>
-        <li>Press <code>Esc</code> while previewing a file to return to folder preview.</li>
-      </ul>
+    async function loadHelpMarkdown() {
+      if (HELP_MD_CACHE !== null) return HELP_MD_CACHE;
+      try {
+        const res = await fetch("help.md", { cache: "no-store" });
+        if (!res.ok) throw new Error("help.md not found");
+        const text = await res.text();
+        HELP_MD_CACHE = text;
+      } catch {
+        HELP_MD_CACHE = HELP_MD_FALLBACK;
+      }
+      return HELP_MD_CACHE;
+    }
 
-      <h2>Gallery Mode (fullscreen overlay)</h2>
-      <ul>
-        <li>Open with <code>G</code>. Close with <code>G</code> or <code>Esc</code>.</li>
-        <li><code>↑/↓</code> moves between items (folders and files) in the current directory.</li>
-        <li><code>←/→</code> leaves/enters directories (folders act like navigable items).</li>
-      </ul>
-
-      <h2>Searching</h2>
-      <ul>
-        <li>Use the search bar to filter the current view by name (folders only).</li>
-        <li>Search stays active until you click <code>X</code> in the search bar.</li>
-      </ul>
-
-      <h2>Scoring (folder scoring)</h2>
-      <ul>
-        <li>Scoring visibility is controlled from <code>Preferences</code> in the Options menu.</li>
-        <li>Folder scores can show arrows, show score only, or hide everything.</li>
-      </ul>
-
-      <h2>Tags (single-folder)</h2>
-      <ul>
-        <li>Open the ⋯ menu on a folder row and choose <code>Tag</code> to edit its tags (comma-separated). Press <code>Enter</code> to save or <code>Esc</code> to cancel.</li>
-        <li>When the current directory contains tagged child folders, tag chips appear (with counts). Click to include, click again to hide, click a third time to clear.</li>
-      </ul>
-
-      <h2>Tags (multi-folder)</h2>
-      <ul>
-        <li>Click <code>Select</code> to show folder checkboxes, then click folders to select multiple folders.</li>
-        <li>Use the ☰ menu to tag, favorite, or hide the selected folders. <code>Tag selected</code> opens the bulk tag row.</li>
-        <li>In the bulk tag row, type comma-separated tags and/or click existing tag chips, then click <code>Apply</code>.</li>
-        <li>Click <code>Clear</code> to reset the selection.</li>
-      </ul>
-
-      <h2>Hidden folders</h2>
-      <ul>
-        <li>Use the <code>Hidden</code> button to switch into hidden mode and view hidden folders.</li>
-        <li>Hidden folders are only visible while hidden mode is active.</li>
-      </ul>
-    `;
-
-    function openHelp() {
+    async function openHelp() {
       HELP_OPEN = true;
       if (helpOverlay) helpOverlay.classList.add("active");
-      if (helpBodyEl) helpBodyEl.innerHTML = HELP_HTML;
+      if (!helpBodyEl) return;
+      helpBodyEl.innerHTML = `<div class="label">Loading help...</div>`;
+      const md = await loadHelpMarkdown();
+      helpBodyEl.innerHTML = markdownToHtml(md);
     }
 
     function closeHelp() {
@@ -970,6 +986,7 @@
         { value: "expanded", label: "Expanded" }
       ];
 
+
       const previewSizeModes = [
         { value: "small", label: "Small" },
         { value: "medium", label: "Medium" },
@@ -1028,6 +1045,7 @@
 
         <h2>Display</h2>
         ${makeSelectRow("Color scheme", "Switch the overall interface palette.", "opt_colorScheme", String(opt.colorScheme || "classic"), colorSchemes)}
+        ${makeCheckRow("Retro Mode", "Pixelated, low-res UI styling across themes.", "opt_retroMode", !!opt.retroMode)}
         ${makeSelectRow("Preview mode", "Controls how folders are shown in the preview pane.", "opt_previewMode", String(opt.previewMode || "grid"), previewModes)}
         ${makeCheckRow("Hide file extensions", "Hide .jpg / .mp4 in file names.", "opt_hideFileExtensions", !!opt.hideFileExtensions)}
         ${makeCheckRow("Hide indices from display names", "Hide numeric prefixes like '01 - '.", "opt_hideIndicesInNames", !!opt.hideIndicesInNames)}
@@ -1116,6 +1134,9 @@
       });
       bindSelect("opt_previewMode", "previewMode", false, () => {
         renderPreviewPane(true);
+      });
+      bindCheck("opt_retroMode", "retroMode", () => {
+        applyRetroModeFromOptions();
       });
       bindCheck("opt_hideFileExtensions", "hideFileExtensions");
       bindCheck("opt_hideIndicesInNames", "hideIndicesInNames");
@@ -1765,6 +1786,9 @@
       WS.meta.options = normalizeOptions(log.options || null);
       metaApplyTagFiltersFromLog(log);
       applyDefaultViewFromOptions();
+      applyColorSchemeFromOptions();
+      applyRetroModeFromOptions();
+      applyDisplaySizesFromOptions();
     }
 
     function metaApplyFromLog(log) {
@@ -1774,6 +1798,9 @@
       WS.meta.dirSortMode = sortMode;
 
       WS.meta.options = normalizeOptions(log.options || null);
+      applyColorSchemeFromOptions();
+      applyRetroModeFromOptions();
+      applyDisplaySizesFromOptions();
 
       const folders = log.folders && typeof log.folders === "object" ? log.folders : {};
       const oldByPath = new Map();
@@ -2892,6 +2919,56 @@
       return false;
     }
 
+    async function renameSingleFile(rec, nextName) {
+      if (!rec) return false;
+      if (!WS.meta.fsRootHandle) {
+        showStatusMessage("Renaming files requires a writable folder.");
+        return false;
+      }
+
+      const clean = String(nextName || "").trim();
+      if (!isValidFileName(clean)) {
+        showStatusMessage("Invalid file name.");
+        return false;
+      }
+      if (clean === String(rec.name || "")) return true;
+
+      const dirPath = String(rec.dirPath || "");
+      const dirHandle = await getDirectoryHandleForPath(WS.meta.fsRootHandle, dirPath);
+      let existing = false;
+      try {
+        await dirHandle.getFileHandle(clean);
+        existing = true;
+      } catch {}
+      if (existing) {
+        showStatusMessage("A file with that name already exists.");
+        return false;
+      }
+
+      const fileHandle = await dirHandle.getFileHandle(String(rec.name || ""));
+      const ok = await renameFileOnDisk(dirHandle, fileHandle, String(rec.name || ""), clean);
+      if (!ok) {
+        showStatusMessage("Rename failed.");
+        return false;
+      }
+
+      const dirNode = WS.dirByPath.get(dirPath) || null;
+      if (dirNode) {
+        const renameMap = new Map([[String(rec.name || ""), clean]]);
+        updateFileRecordsForFileRenames(dirNode, renameMap);
+      }
+
+      metaComputeFingerprints();
+      WS.meta.dirty = true;
+      try {
+        if (WS.meta.storageMode === "fs") await metaSaveFsNow();
+        else metaSaveLocalNow();
+      } catch {}
+
+      showStatusMessage("Rename complete.");
+      return true;
+    }
+
     function getChildDirsForNodeBase(dirNode) {
       if (!dirNode) return [];
       const base = sortDirsForDisplay(dirNode.childrenDirs).filter(d => dirItemCount(d) > 0);
@@ -3642,6 +3719,52 @@
     function closeActionMenus() {
       WS.view.bulkActionMenuOpen = false;
       WS.view.dirActionMenuPath = "";
+      WS.view.fileActionMenuId = "";
+    }
+
+    function openDirMenuForPath(path) {
+      const p = String(path || "");
+      if (!p) return;
+      WS.view.bulkActionMenuOpen = false;
+      WS.view.dirActionMenuPath = p;
+      WS.view.fileActionMenuId = "";
+      TAG_EDIT_PATH = null;
+      RENAME_EDIT_PATH = null;
+      RENAME_EDIT_FILE_ID = null;
+      closeBulkTagPanel();
+
+      const idx = findDirEntryIndexByPath(p);
+      if (idx >= 0) {
+        WS.nav.selectedIndex = findNearestSelectableIndex(idx, 1);
+        syncPreviewToSelection();
+      }
+      renderDirectoriesPane(true);
+      renderPreviewPane(false, true);
+      syncButtons();
+    }
+
+    function openFileMenuForId(fileId) {
+      const id = String(fileId || "");
+      if (!id) return;
+      WS.view.bulkActionMenuOpen = false;
+      WS.view.dirActionMenuPath = "";
+      WS.view.fileActionMenuId = id;
+      TAG_EDIT_PATH = null;
+      RENAME_EDIT_PATH = null;
+      RENAME_EDIT_FILE_ID = null;
+      closeBulkTagPanel();
+
+      for (let i = 0; i < WS.nav.entries.length; i++) {
+        const entry = WS.nav.entries[i];
+        if (entry && entry.kind === "file" && String(entry.id || "") === id) {
+          WS.nav.selectedIndex = findNearestSelectableIndex(i, 1);
+          syncPreviewToSelection();
+          break;
+        }
+      }
+      renderDirectoriesPane(true);
+      renderPreviewPane(false, true);
+      syncButtons();
     }
 
     function entryKeyForSelection(entry) {
@@ -3792,6 +3915,30 @@
       if (ok) {
         RENAME_EDIT_PATH = null;
         closeActionMenus();
+        return;
+      }
+      renderDirectoriesPane(true);
+    }
+
+    async function commitFileRenameEdit(fileId, inputEl) {
+      if (RENAME_BUSY) return;
+      const rec = WS.fileById.get(String(fileId || ""));
+      if (!rec) {
+        RENAME_EDIT_FILE_ID = null;
+        renderDirectoriesPane(true);
+        return;
+      }
+      RENAME_BUSY = true;
+      const ok = await renameSingleFile(rec, inputEl.value || "");
+      RENAME_BUSY = false;
+      if (ok) {
+        RENAME_EDIT_FILE_ID = null;
+        closeActionMenus();
+        renderDirectoriesPane(true);
+        renderPreviewPane(false, true);
+        syncButtons();
+        kickVideoThumbsForPreview();
+        kickImageThumbsForPreview();
         return;
       }
       renderDirectoriesPane(true);
@@ -4123,6 +4270,7 @@
         let meta = "";
         let voteHtml = "";
         let rightHtml = "";
+        let fileMenuHtml = "";
 
         if (entry.kind === "dir") {
           const p = entry.node?.path || "";
@@ -4147,9 +4295,10 @@
           `;
           }
           const menuOpen = WS.view.dirActionMenuPath === p;
+          // Folder menu (three dot / ⋯) for single-folder actions.
           const menuHtml = `
             <div class="dirMenu">
-            <button class="dirMenuBtn" title="Folder actions">⋯</button>
+            <button class="dirMenuBtn" title="Folder menu">⋯</button>
             <div class="dropdownMenu${menuOpen ? " open" : ""}">
               <div class="scoreRow">
                 <button type="button" class="scoreBtn" data-action="score-up">+</button>
@@ -4172,6 +4321,16 @@
           icon = canBulk ? (sel ? "☑" : "☐") : (isVid ? "🎞" : "🖼");
           name = fileDisplayName(rec?.name || "file") || "file";
           meta = isVid ? "video" : "image";
+          const fileMenuOpen = WS.view.fileActionMenuId === String(entry.id || "");
+          // File menu (three dot / ⋯) for single-file actions.
+          fileMenuHtml = `
+            <div class="dirMenu">
+            <button class="dirMenuBtn" title="File menu">⋯</button>
+            <div class="dropdownMenu${fileMenuOpen ? " open" : ""}">
+              <button type="button" data-action="rename-file">Rename</button>
+            </div>
+          </div>
+          `;
         }
 
         if (entry.kind === "dir" && (entry.node?.path || "") === (RENAME_EDIT_PATH || "")) {
@@ -4224,11 +4383,23 @@
         `;
             }
           } else {
-            row.innerHTML = `
+            if (String(entry.id || "") === String(RENAME_EDIT_FILE_ID || "")) {
+              const rec = WS.fileById.get(entry.id);
+              const curName = String(rec?.name || "");
+              row.innerHTML = `
+          <div class="dirIcon">${icon}</div>
+          <div class="dirName"><input class="tagEditInput renameEditInput" type="text" value="${escapeHtml(curName)}" placeholder="file name" /></div>
+          <div class="dirMeta">${escapeHtml(meta)}</div>
+          ${fileMenuHtml}
+        `;
+            } else {
+              row.innerHTML = `
           <div class="dirIcon">${icon}</div>
           <div class="dirName" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
           <div class="dirMeta">${escapeHtml(meta)}</div>
+          ${fileMenuHtml}
         `;
+            }
           }
         }
 
@@ -4256,6 +4427,18 @@
           WS.view.dirSelectAnchorIndex = idx;
           setDirectoriesSelection(idx);
         });
+
+        if (entry.kind === "dir") {
+          row.addEventListener("contextmenu", (e) => {
+            e.preventDefault();
+            openDirMenuForPath(entry.node?.path || "");
+          });
+        } else if (entry.kind === "file") {
+          row.addEventListener("contextmenu", (e) => {
+            e.preventDefault();
+            openFileMenuForId(entry.id);
+          });
+        }
 
         if (entry.kind === "dir") {
           const p = entry.node?.path || "";
@@ -4438,6 +4621,74 @@
             } else {
               iconEl.style.cursor = "default";
             }
+          }
+
+          const menuBtn = row.querySelector(".dirMenuBtn");
+          if (menuBtn) {
+            menuBtn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              WS.view.bulkActionMenuOpen = false;
+              WS.view.dirActionMenuPath = "";
+              const id = String(entry.id || "");
+              WS.view.fileActionMenuId = (WS.view.fileActionMenuId === id) ? "" : id;
+              renderDirectoriesPane(true);
+            });
+          }
+
+          const menuDropdown = row.querySelector(".dirMenu .dropdownMenu");
+          if (menuDropdown) {
+            menuDropdown.addEventListener("click", (e) => e.stopPropagation());
+            const actionButtons = Array.from(menuDropdown.querySelectorAll("button[data-action]"));
+            actionButtons.forEach((btn) => {
+              btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const action = btn.getAttribute("data-action");
+                WS.view.fileActionMenuId = "";
+                if (action === "rename-file") {
+                  if (!WS.meta.fsRootHandle) {
+                    showStatusMessage("Renaming files requires a writable folder.");
+                    return;
+                  }
+                  RENAME_EDIT_FILE_ID = String(entry.id || "");
+                  RENAME_EDIT_PATH = null;
+                  TAG_EDIT_PATH = null;
+                  renderDirectoriesPane(true);
+                  setTimeout(() => {
+                    const input = directoriesListEl.querySelector(".dirRow.selected .renameEditInput") || row.querySelector(".renameEditInput");
+                    if (input) {
+                      try { input.focus(); input.select(); } catch {}
+                    }
+                  }, 0);
+                  return;
+                }
+              });
+            });
+            if (menuDropdown.classList.contains("open")) {
+              requestAnimationFrame(() => positionDropdownMenu(menuBtn, menuDropdown));
+            }
+          }
+
+          const renameInput = row.querySelector(".renameEditInput");
+          if (renameInput) {
+            renameInput.addEventListener("click", (e) => { e.stopPropagation(); });
+            renameInput.addEventListener("keydown", (e) => {
+              e.stopPropagation();
+              if (e.key === "Escape") {
+                e.preventDefault();
+                RENAME_EDIT_FILE_ID = null;
+                closeActionMenus();
+                renderDirectoriesPane(true);
+                return;
+              }
+              if (e.key === "Enter") {
+                e.preventDefault();
+                commitFileRenameEdit(entry.id, renameInput);
+                return;
+              }
+            });
+            renameInput.addEventListener("blur", () => {
+              commitFileRenameEdit(entry.id, renameInput);
+            });
           }
         }
 
@@ -5378,6 +5629,7 @@
       WS.view.scrollBusyPreview = false;
     });
 
+
     function makeSpacer() {
       const sp = document.createElement("div");
       sp.className = "previewSectionSpacer";
@@ -5416,6 +5668,10 @@
 
       card.addEventListener("click", () => {
         navigateToDirectory(dirNode);
+      });
+      card.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        openDirMenuForPath(dirNode?.path || "");
       });
       return card;
     }
@@ -6751,6 +7007,8 @@
        ========================================================= */
 
     if (directoriesSearchClearBtn) directoriesSearchClearBtn.disabled = true;
+    applyColorSchemeFromOptions();
+    applyRetroModeFromOptions();
     renderDirectoriesPane();
     renderPreviewPane(true);
     syncButtons();
