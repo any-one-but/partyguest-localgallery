@@ -209,7 +209,19 @@
         return 0.28;
       })()
       ,
-      mediaFilter: (src.mediaFilter === 'off' || src.mediaFilter === 'cooked' || src.mediaFilter === 'blackwhite' || src.mediaFilter === 'ultra' || src.mediaFilter === 'uv' || src.mediaFilter === 'orangeTeal'/* || src.mediaFilter === 'cinematic' || src.mediaFilter === 'vintage' || src.mediaFilter === 'bleach' || src.mediaFilter === 'soft'*/) ? src.mediaFilter : d.mediaFilter
+mediaFilter: (
+  /* Media filters: UI */
+  src.mediaFilter === 'off' ||
+    src.mediaFilter === 'vibrant' ||
+  src.mediaFilter === 'ultra' ||
+  src.mediaFilter === 'polaroid' ||
+  src.mediaFilter === 'cooked' ||
+  src.mediaFilter === 'blackwhite' ||
+  src.mediaFilter === 'uv' ||
+  src.mediaFilter === 'orangeTeal'/* ||
+  src.mediaFilter === 'cinematic' ||
+  src.mediaFilter === 'soft'*/
+) ? src.mediaFilter : d.mediaFilter
     };
       return out;
     }
@@ -1103,10 +1115,13 @@
       ];
 
       const mediaFilterModes = [
+        /* media filters: names */
         { value: "off", label: "Off" },
+        { value: "vibrant", label: "Vibrant" },
+        { value: "ultra", label: "Palm tree" },
+        { value: "polaroid", label: "Polaroid" },
         { value: "cooked", label: "Cooked" },
         { value: "blackwhite", label: "Black and White" },
-        { value: "ultra", label: "Ultra Saturated" },
         { value: "uv", label: "UV Camera" },
         { value: "orangeTeal", label: "Orange+Teal" }/*
         { value: "cinematic", label: "Cinematic" },
@@ -1148,7 +1163,7 @@
         <h2>Display</h2>
         ${makeSelectRow("Color scheme", "Switch the overall interface palette.", "opt_colorScheme", String(opt.colorScheme || "classic"), colorSchemes)}
         ${makeCheckRow("Retro Mode", "Pixelated, low-res UI styling across themes.", "opt_retroMode", !!opt.retroMode)}
-        ${makeSelectRow("Media Filter", "Apply a visual filter to media elements (Off or Cooked).", "opt_mediaFilter", String(opt.mediaFilter || "off"), mediaFilterModes)}
+        ${makeSelectRow("Media Filter", "Apply a visual filter to media elements.", "opt_mediaFilter", String(opt.mediaFilter || "off"), mediaFilterModes)}
         ${makeSelectRow("Preview mode", "Controls how folders are shown in the preview pane.", "opt_previewMode", String(opt.previewMode || "grid"), previewModes)}
         ${makeCheckRow("Hide file extensions", "Hide .jpg / .mp4 in file names.", "opt_hideFileExtensions", !!opt.hideFileExtensions)}
         ${makeCheckRow("Hide indices from display names", "Hide numeric prefixes like '01 - '.", "opt_hideIndicesInNames", !!opt.hideIndicesInNames)}

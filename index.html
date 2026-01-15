@@ -221,6 +221,18 @@
       </div>
     </div>
   </div>
+<svg
+  width="0"
+  height="0"
+  aria-hidden="true"
+  style="position:absolute; left:-9999px; top:-9999px"
+>
+  <filter id="crt-chroma">
+    <feOffset in="SourceGraphic" dx="-0.6" dy="0" result="r" />
+    <feOffset in="SourceGraphic" dx="0.6" dy="0" result="b" />
+    <feBlend in="r" in2="b" mode="screen" />
+  </filter>
+</svg>
 
   
   <script src="./app.js"></script>
