@@ -209,18 +209,23 @@
         return 0.28;
       })()
       ,
+/* Media filters: UI */
 mediaFilter: (
-  /* Media filters: UI */
   src.mediaFilter === 'off' ||
-    src.mediaFilter === 'vibrant' ||
+  src.mediaFilter === 'vibrant' ||
+  src.mediaFilter === 'vhs' ||
+  src.mediaFilter === 'dream' ||
+  src.mediaFilter === 'candlelight' ||
+  src.mediaFilter === 'neon' ||
+  src.mediaFilter === 'lofi' ||
   src.mediaFilter === 'ultra' ||
   src.mediaFilter === 'polaroid' ||
   src.mediaFilter === 'cooked' ||
   src.mediaFilter === 'blackwhite' ||
   src.mediaFilter === 'uv' ||
-  src.mediaFilter === 'orangeTeal'/* ||
+  src.mediaFilter === 'orangeTeal' /* ||
   src.mediaFilter === 'cinematic' ||
-  src.mediaFilter === 'soft'*/
+  src.mediaFilter === 'soft' */
 ) ? src.mediaFilter : d.mediaFilter
     };
       return out;
@@ -1116,9 +1121,15 @@ mediaFilter: (
 
       const mediaFilterModes = [
         /* media filters: names */
-        { value: "off", label: "Off" },
-        { value: "vibrant", label: "Vibrant" },
-        { value: "ultra", label: "Palm tree" },
+       { value: "off", label: "Off" },
+       { value: "vibrant", label: "Vibrant" },   
+       { value: "vhs", label: "VHS" },
+       { value: "dream", label: "Dream" },
+       { value: "candlelight", label: "Candlelight" },
+       { value: "neon", label: "Neon" },
+       { value: "lofi", label: "Lo-Fi" },
+       { value: "ultra", label: "Palm Tree" },
+
         { value: "polaroid", label: "Polaroid" },
         { value: "cooked", label: "Cooked" },
         { value: "blackwhite", label: "Black and White" },
