@@ -220,6 +220,10 @@
       </div>
     </div>
   </div>
+
+  /*=========================================================
+         SVG Filters (hidden)
+         ========================================================= */
 <svg
   width="0"
   height="0"
@@ -238,35 +242,6 @@
   </filter>
 </svg>
 
-<svg width="0" height="0" aria-hidden="true" style="position:absolute; left:-9999px; top:-9999px">
-  <filter id="vhs-chroma">
-    <!-- Split channels -->
-    <feColorMatrix in="SourceGraphic" type="matrix"
-      values="1 0 0 0 0
-              0 1 0 0 0
-              0 0 1 0 0
-              0 0 0 1 0" result="base"/>
-    <feOffset in="base" dx="-1.6" dy="0.2" result="rShift"/>
-    <feOffset in="base" dx="1.6" dy="-0.2" result="bShift"/>
-
-    <!-- Blur the shifted channels to feel “magnetic” -->
-    <feGaussianBlur in="rShift" stdDeviation="0.7" result="rBlur"/>
-    <feGaussianBlur in="bShift" stdDeviation="0.7" result="bBlur"/>
-
-    <!-- Recombine -->
-    <feBlend in="rBlur" in2="base" mode="screen" result="rb1"/>
-    <feBlend in="bBlur" in2="rb1" mode="screen" result="rb2"/>
-
-    <!-- Slight lift (tape softness) -->
-    <feComponentTransfer in="rb2">
-      <feFuncR type="gamma" amplitude="1" exponent="0.98" offset="0.01"/>
-      <feFuncG type="gamma" amplitude="1" exponent="0.99" offset="0.01"/>
-      <feFuncB type="gamma" amplitude="1" exponent="0.98" offset="0.01"/>
-    </feComponentTransfer>
-  </filter>
-</svg>
-
-  
   <script src="./app.js"></script>
 </body>
 </html>

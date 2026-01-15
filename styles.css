@@ -547,6 +547,8 @@ filter:
   78% { opacity: 0.36; }
 }
 
+
+
  /* Polaroid: high contrast, warm highlights, lifted blacks, soft, grainy, nostalgic */
 /* Polaroid (tuned up): warmer/aged, softer, more grain, less vignette */
 #app[data-media-filter="polaroid"] img,
