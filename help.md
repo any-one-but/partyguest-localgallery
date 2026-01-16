@@ -1,6 +1,8 @@
 Disclaimer: Local Gallery is a web app that runs locally on your computer. It cannot delete files. No files you give it access to are ever uploaded anywhere. It uses disk write permissions to create and edit logs it keeps in a system file in any folder you load into it. It also has permissions to rename files, but only when you choose to (these actions are called Rename, Batch Index I, and Batch Index II).
 ## Basics
 Local Gallery is a media viewer designed for consuming porn. It primarily uses hot keys for interactions and mirrors it's controls down the middle of the keyboard so it can be used one handed by anyone.
+## B is for BANIC!
+You can press `B` at any point to initiate BANIC! mode, which instantly mutes all audio and blanks the window. By default, BANIC! also opens a random safe window, but you can turn this off in the Options Menu if you prefer. Press `B` again to disengage BANIC! mode.
 ## Getting Started
 Start by choosing a folder as your root with the `Upload Folder` button. I recommend  choosing the highest level directory in your collection. The first time you choose a folder as your root, Local Gallery will make a system folder inside called `.local-gallery` to store information about the content and to save your option preferences. Loading a folder may take a few seconds. Once it's loaded, all immediate subfolders will appear on the left in the Directories Pane and the Preview Pane on the right will populate with the contents of the selected folder.
 ## Navigation
