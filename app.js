@@ -214,6 +214,7 @@ mediaFilter: (
   src.mediaFilter === 'off' ||
   src.mediaFilter === 'vibrant' ||
   src.mediaFilter === 'ultra' ||
+    src.mediaFilter === 'kodak' ||
   src.mediaFilter === 'polaroid' ||
   src.mediaFilter === 'cooked' ||
   src.mediaFilter === 'blackwhite' ||
@@ -1119,7 +1120,8 @@ mediaFilter: (
        { value: "off", label: "Off" },
        { value: "vibrant", label: "Vibrant" },   
        { value: "ultra", label: "Palm Tree" },
-        { value: "polaroid", label: "Polaroid" },
+       { value: "kodak", label: "Kodak" },
+       { value: "polaroid", label: "Polaroid" },
         { value: "cooked", label: "Cooked" },
         { value: "blackwhite", label: "Black and White" },
         { value: "uv", label: "UV Camera" },
