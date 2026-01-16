@@ -149,7 +149,7 @@
         defaultFilterMode: "all",
         defaultRandomMode: false,
         defaultFolderBehavior: "slide",
-        folderScoreDisplay: "hidden",
+        folderScoreDisplay: "no-arrows",
         tagFilterMode: "or",
         tagChipCycle: "tri",
         previewMode: "grid",
@@ -164,9 +164,9 @@
         forceTitleCaps: false,
         banicOpenWindow: true,
         altGalleryMode: false,
-        retroMode: false,
+        retroMode: true,
         mediaFilter: "off",
-        colorScheme: "classic",
+        colorScheme: "retro90s-dark",
         leftPaneWidthPct: 0.28
       };
     }
@@ -1129,48 +1129,48 @@ mediaFilter: (
       ];
 
       optionsBodyEl.innerHTML = `
-        <div class="label" style="margin-bottom:8px;">Preferences are stored in preferences.log.json in the local-gallery system folder in the root directory. They save automatically.</div>
+        <div class="label" style="margin-bottom:8px;">Preferences are stored in preferences.log.json in the .local-gallery system folder in the root directory. They save automatically.</div>
 
-        <h2>Video</h2>
-        ${makeSelectRow("Video audio (preview)", "Controls autoplay + mute in the in-pane preview player.", "opt_videoPreview", String(opt.videoPreview || "muted"), vidModes)}
-        ${makeSelectRow("Video audio (gallery)", "Controls autoplay + mute in fullscreen gallery mode.", "opt_videoGallery", String(opt.videoGallery || "muted"), vidModes)}
+<h1>General</h1>
+${makeSelectRow("Folder sort", "Sort folders by name or score.", "opt_dirSortMode", WS.meta.dirSortMode === "score" ? "score" : "name", dirSortModes)}
+${makeSelectRow("Folder scores", "Choose how folder scores appear in lists + previews.", "opt_folderScoreDisplay", String(opt.folderScoreDisplay || "hidden"), folderScoreModes)}
+${makeSelectRow("Tag filter mode", "When multiple tags are active, match any or all tags.", "opt_tagFilterMode", String(opt.tagFilterMode || "or"), tagFilterModes)}
+${makeSelectRow("Tag button cycle", "Choose whether tags can be set to hide or only active/inactive.", "opt_tagChipCycle", String(opt.tagChipCycle || "tri"), tagChipCycleModes)}
+${makeCheckRow("Alt gallery mode", "Enter on a file opens Gallery; exit with A/J.", "opt_altGalleryMode", !!opt.altGalleryMode)}
+${makeCheckRow("BANIC! opens decoy window", "When enabled, BANIC! opens a harmless site in a new window.", "opt_banicOpenWindow", opt.banicOpenWindow !== false)}
 
-        <h2>Defaults</h2>
-        ${makeSelectRow("Default content filter", "Initial filter when loading a workspace.", "opt_defaultFilterMode", String(opt.defaultFilterMode || "all"), filterModes)}
-        ${makeSelectRow("Default random mode", "Initial random mode.", "opt_defaultRandomMode", opt.defaultRandomMode ? "on" : "off", onOffModes)}
-        ${makeSelectRow("Default folder behavior", "Initial folder behavior.", "opt_defaultFolderBehavior", String(opt.defaultFolderBehavior || "slide"), folderModes)}
+<h1>Defaults</h1>
+${makeSelectRow("Default content filter", "Initial filter when loading a root directory.", "opt_defaultFilterMode", String(opt.defaultFilterMode || "all"), filterModes)}
+${makeSelectRow("Default random mode", "Initial random mode.", "opt_defaultRandomMode", opt.defaultRandomMode ? "on" : "off", onOffModes)}
+${makeSelectRow("Default folder behavior", "Initial folder behavior.", "opt_defaultFolderBehavior", String(opt.defaultFolderBehavior || "slide"), folderModes)}
 
-        <h2>Directories</h2>
-        ${makeSelectRow("Directory sort", "Sort folders by name or score.", "opt_dirSortMode", WS.meta.dirSortMode === "score" ? "score" : "name", dirSortModes)}
-        ${makeSelectRow("Folder scores", "Choose how folder scores appear in lists + previews.", "opt_folderScoreDisplay", String(opt.folderScoreDisplay || "hidden"), folderScoreModes)}
-        ${makeSelectRow("Tag filter mode", "When multiple tags are active, match any or all tags.", "opt_tagFilterMode", String(opt.tagFilterMode || "or"), tagFilterModes)}
-        ${makeSelectRow("Tag button cycle", "Choose whether tags can be set to hide or only active/inactive.", "opt_tagChipCycle", String(opt.tagChipCycle || "tri"), tagChipCycleModes)}
+<h1>Appearance</h1>
+${makeSelectRow("Color scheme", "Switch the overall interface palette.", "opt_colorScheme", String(opt.colorScheme || "classic"), colorSchemes)}
+${makeSelectRow("Media Filter", "Apply a visual filter to media elements.", "opt_mediaFilter", String(opt.mediaFilter || "off"), mediaFilterModes)}
+${makeCheckRow("Retro Mode", "Pixelated, low-res UI styling across themes.", "opt_retroMode", !!opt.retroMode)}
 
-        <h2>Playback</h2>
-        ${makeSelectRow("Video skip step", "Seek increment for Q/E/U/O shortcuts.", "opt_videoSkipStep", String(opt.videoSkipStep || "10"), skipSteps)}
-        ${makeSelectRow("Preload next item", "Preload the next item for smoother browsing.", "opt_preloadNextMode", String(opt.preloadNextMode || "off"), preloadModes)}
-        ${makeSelectRow("Video end behavior", "What happens when a video ends (outside slideshow).", "opt_videoEndBehavior", String(opt.videoEndBehavior || "loop"), videoEndModes)}
-        ${makeSelectRow("Slideshow speed", "Controls Shift behavior for slideshows.", "opt_slideshowDefault", String(opt.slideshowDefault || "cycle"), slideshowModes)}
-        ${makeCheckRow("Alt gallery mode", "Enter on a file opens Gallery; exit with A/J.", "opt_altGalleryMode", !!opt.altGalleryMode)}
-        ${makeCheckRow("BANIC! opens decoy window", "When enabled, BANIC! opens a harmless site in a new window.", "opt_banicOpenWindow", opt.banicOpenWindow !== false)}
+<h1>Playback</h1>
+${makeSelectRow("Video audio (preview)", "Controls autoplay + mute in the in-pane preview player.", "opt_videoPreview", String(opt.videoPreview || "muted"), vidModes)}
+${makeSelectRow("Video audio (gallery)", "Controls autoplay + mute in fullscreen gallery mode.", "opt_videoGallery", String(opt.videoGallery || "muted"), vidModes)}
+${makeSelectRow("Video skip step", "Seek increment for Q/E/U/O shortcuts.", "opt_videoSkipStep", String(opt.videoSkipStep || "10"), skipSteps)}
+${makeSelectRow("Video end behavior", "What happens when a video ends (outside slideshow).", "opt_videoEndBehavior", String(opt.videoEndBehavior || "loop"), videoEndModes)}
+${makeSelectRow("Preload next item", "Preload the next item for smoother browsing.", "opt_preloadNextMode", String(opt.preloadNextMode || "off"), preloadModes)}
+${makeSelectRow("Slideshow speed", "Controls Shift behavior for slideshows.", "opt_slideshowDefault", String(opt.slideshowDefault || "cycle"), slideshowModes)}
 
-        <h2>Thumbnails</h2>
-        ${makeSelectRow("Image thumbnail size", "Controls generated image thumbnail quality (smaller is faster).", "opt_imageThumbSize", String(opt.imageThumbSize || "medium"), thumbModes)}
-        ${makeSelectRow("Video thumbnail size", "Controls generated video thumbnail quality (smaller is faster).", "opt_videoThumbSize", String(opt.videoThumbSize || "medium"), thumbModes)}
-        ${makeSelectRow("Media thumbnail scale", "Controls how large media cards appear in the preview pane.", "opt_mediaThumbUiSize", String(opt.mediaThumbUiSize || "medium"), previewSizeModes)}
-        ${makeSelectRow("Folder preview scale", "Controls how large folder cards appear in the preview pane.", "opt_folderPreviewSize", String(opt.folderPreviewSize || "medium"), previewSizeModes)}
+<h1>Preview</h1>
+${makeSelectRow("Image thumbnail size", "Controls generated image thumbnail quality (smaller is faster).", "opt_imageThumbSize", String(opt.imageThumbSize || "medium"), thumbModes)}
+${makeSelectRow("Video thumbnail size", "Controls generated video thumbnail quality (smaller is faster).", "opt_videoThumbSize", String(opt.videoThumbSize || "medium"), thumbModes)}
+${makeSelectRow("Media thumbnail scale", "Controls how large media cards appear in the preview pane.", "opt_mediaThumbUiSize", String(opt.mediaThumbUiSize || "medium"), previewSizeModes)}
+${makeSelectRow("Folder preview scale", "Controls how large folder cards appear in the preview pane.", "opt_folderPreviewSize", String(opt.folderPreviewSize || "medium"), previewSizeModes)}
+${makeSelectRow("Preview mode", "Controls how folders are shown in the preview pane.", "opt_previewMode", String(opt.previewMode || "grid"), previewModes)}
 
-        <h2>Display</h2>
-        ${makeSelectRow("Color scheme", "Switch the overall interface palette.", "opt_colorScheme", String(opt.colorScheme || "classic"), colorSchemes)}
-        ${makeCheckRow("Retro Mode", "Pixelated, low-res UI styling across themes.", "opt_retroMode", !!opt.retroMode)}
-        ${makeSelectRow("Media Filter", "Apply a visual filter to media elements.", "opt_mediaFilter", String(opt.mediaFilter || "off"), mediaFilterModes)}
-        ${makeSelectRow("Preview mode", "Controls how folders are shown in the preview pane.", "opt_previewMode", String(opt.previewMode || "grid"), previewModes)}
-        ${makeCheckRow("Hide file extensions", "Hide .jpg / .mp4 in file names.", "opt_hideFileExtensions", !!opt.hideFileExtensions)}
-        ${makeCheckRow("Hide indices from display names", "Hide numeric prefixes like '01 - '.", "opt_hideIndicesInNames", !!opt.hideIndicesInNames)}
-        ${makeCheckRow("Hide underscores from display names", "Replace underscores with spaces.", "opt_hideUnderscoresInNames", !!opt.hideUnderscoresInNames)}
-        ${makeCheckRow("Hide prefix before last ' - ' in file names", "Show only text after the last ' - ' in file names.", "opt_hideBeforeLastDashInFileNames", !!opt.hideBeforeLastDashInFileNames)}
-        ${makeCheckRow("Hide suffix after first underscore in file names", "Show only text before the first underscore in file names.", "opt_hideAfterFirstUnderscoreInFileNames", !!opt.hideAfterFirstUnderscoreInFileNames)}
-        ${makeCheckRow("Force title caps in display names", "Apply Title Case to display names.", "opt_forceTitleCaps", !!opt.forceTitleCaps)}
+<h1>Filenames</h1>
+${makeCheckRow("Hide file extensions", "Hide .jpg / .mp4 in file names.", "opt_hideFileExtensions", !!opt.hideFileExtensions)}
+${makeCheckRow("Hide indices from display names", "Hide numeric prefixes like '01 - '.", "opt_hideIndicesInNames", !!opt.hideIndicesInNames)}
+${makeCheckRow("Hide underscores from display names", "Replace underscores with spaces.", "opt_hideUnderscoresInNames", !!opt.hideUnderscoresInNames)}
+${makeCheckRow("Hide prefix before last ' - ' in file names", "Show only text after the last ' - ' in file names.", "opt_hideBeforeLastDashInFileNames", !!opt.hideBeforeLastDashInFileNames)}
+${makeCheckRow("Hide suffix after first underscore in file names", "Show only text before the first underscore in file names.", "opt_hideAfterFirstUnderscoreInFileNames", !!opt.hideAfterFirstUnderscoreInFileNames)}
+${makeCheckRow("Force title caps in display names", "Apply Title Case to display names.", "opt_forceTitleCaps", !!opt.forceTitleCaps)}
       `;
 
       const bindSelect = (id, key, invalidateThumbs, onChange, valueParser) => {

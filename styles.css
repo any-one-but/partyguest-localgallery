@@ -2032,13 +2032,21 @@ filter:
       line-height: 1.5;
     }
 
-    #optionsBody h2 {
-      font-size: 12px;
+#optionsBody h1 {
+      font-size: 20px;
       font-weight: 800;
       letter-spacing: .02em;
       margin: 12px 0 6px;
       color: var(--color0-primary);
     }
+
+    /*#optionsBody h2 {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .02em;
+      margin: 12px 0 6px;
+      color: var(--color0-primary);
+    }*/
 
     #optionsBody .optRow {
       display: flex;
