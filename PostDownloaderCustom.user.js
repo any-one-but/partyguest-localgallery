@@ -4,7 +4,7 @@
 // @namespace
 // @author anyone-but
 // @description Downloads images and videos from posts
-// @version 01.0.03
+// @version 01.0.04
 // @updateURL
 // @downloadURL
 // @icon https://simp4.host.church/simpcityIcon192.png
@@ -61,7 +61,7 @@
 // @connect cyberdrop.to
 // @connect cyberfile.su
 // @connect cyberfile.me
-// @connect turbovid.cr
+// @connect turbo.cr
 // @connect saint2.su
 // @connect saint2.cr
 // @connect redd.it
@@ -1478,7 +1478,7 @@ const hosts = [
     ['Pixhost:image', [/(t|img)(\d+)?\.pixhost.to\//, /pixhost.to\/gallery\//]],
     ['Imagebam:image', [/imagebam.com\/(view|gallery)/]],
     ['Imagebam:full embed', [/images\d.imagebam.com/]],
-    ['turbovid:video', [/(turbovid.(cr)\/embed\/|([~an@]+\.)?turbovid.(cr)\/videos)/]],
+    ['turbo:video', [/(turbo.(cr)\/embed\/|([~an@]+\.)?turbo.(cr)\/videos)/]],
     ['Redgifs:video', [/!!redgifs.com(\/|\\\/)ifr.*?(?="|&quot;)/]],
     ['Bunkr:',
         [
@@ -2305,13 +2305,13 @@ const resolvers = [
             };
         },
     ],
-    [[/([~an@]+\.)?turbovid.(cr)\/videos/], async url => url],
+    [[/([~an@]+\.)?turbo.(cr)\/videos/], async url => url],
     [[/public.onlyfans.com\/files/], async url => url],
     [
-        [/turbovid.(cr)\/embed/],
+        [/turbo.(cr)\/embed/],
         async (url, http) => {
-            // Replace turbovid.cr with saint2.su
-            url = url.replace('turbovid.cr', 'saint2.su');
+            // Replace turbov.cr with saint2.su
+            url = url.replace('turbo.cr', 'saint2.su');
 
             const { dom } = await http.get(url);
             return dom.querySelector('source')?.getAttribute('src');
