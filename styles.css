@@ -499,7 +499,7 @@ filter:
 
   mix-blend-mode: multiply;
   opacity: 0.9;
-  blur: 0.3px;
+  filter: blur(0.5px);
 }
 
 #app[data-media-filter="ultra"] img,

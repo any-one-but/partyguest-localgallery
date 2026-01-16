@@ -854,7 +854,7 @@ mediaFilter: (
       const r = WS.view.randomMode ? "On" : "Off";
       const b = WS.view.folderBehavior === "loop" ? "Loop" : (WS.view.folderBehavior === "slide" ? "Slide" : "Stop");
       const s = WS.meta.dirSortMode === "score" ? "Score" : "Name";
-      modePill.textContent = `Media filter: ${f} | Random mode: ${r} | Folder behavior: ${b} | Dir sort: ${s}`;
+      modePill.textContent = `Content filter: ${f} | Random mode: ${r} | Folder behavior: ${b} | Dir sort: ${s}`;
     }
 
     function syncMetaButtons() {
@@ -1129,16 +1129,16 @@ mediaFilter: (
       ];
 
       optionsBodyEl.innerHTML = `
-        <div class="label" style="margin-bottom:8px;">Preferences are saved alongside scores/tags (or localStorage fallback).</div>
+        <div class="label" style="margin-bottom:8px;">Preferences are stored in preferences.log.json in the local-gallery system folder in the root directory. They save automatically.</div>
 
         <h2>Video</h2>
         ${makeSelectRow("Video audio (preview)", "Controls autoplay + mute in the in-pane preview player.", "opt_videoPreview", String(opt.videoPreview || "muted"), vidModes)}
         ${makeSelectRow("Video audio (gallery)", "Controls autoplay + mute in fullscreen gallery mode.", "opt_videoGallery", String(opt.videoGallery || "muted"), vidModes)}
 
         <h2>Defaults</h2>
-        ${makeSelectRow("Default media filter", "Initial filter when loading a workspace (hotkeys can still change it).", "opt_defaultFilterMode", String(opt.defaultFilterMode || "all"), filterModes)}
-        ${makeSelectRow("Default random mode", "Initial random mode (hotkeys can still change it).", "opt_defaultRandomMode", opt.defaultRandomMode ? "on" : "off", onOffModes)}
-        ${makeSelectRow("Default folder behavior", "Initial folder behavior (hotkeys can still change it).", "opt_defaultFolderBehavior", String(opt.defaultFolderBehavior || "slide"), folderModes)}
+        ${makeSelectRow("Default content filter", "Initial filter when loading a workspace.", "opt_defaultFilterMode", String(opt.defaultFilterMode || "all"), filterModes)}
+        ${makeSelectRow("Default random mode", "Initial random mode.", "opt_defaultRandomMode", opt.defaultRandomMode ? "on" : "off", onOffModes)}
+        ${makeSelectRow("Default folder behavior", "Initial folder behavior.", "opt_defaultFolderBehavior", String(opt.defaultFolderBehavior || "slide"), folderModes)}
 
         <h2>Directories</h2>
         ${makeSelectRow("Directory sort", "Sort folders by name or score.", "opt_dirSortMode", WS.meta.dirSortMode === "score" ? "score" : "name", dirSortModes)}
